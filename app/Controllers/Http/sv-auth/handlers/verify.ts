@@ -1,7 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 const verify = async ({ request, response, auth }: HttpContextContract) => {
-    // render generico
     const renderParams: any = {
         data: {},
         notification: {

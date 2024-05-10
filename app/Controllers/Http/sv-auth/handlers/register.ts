@@ -4,8 +4,6 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import { DateTime } from 'luxon';
 
 const register = async ({ request, response, auth }: HttpContextContract) => {
-    // render generico
-    // const db = await Database.connection('pg')
     const renderParams: any = {
         data: {},
         notification: {
@@ -15,13 +13,13 @@ const register = async ({ request, response, auth }: HttpContextContract) => {
         },
     }
     try {
-        const { username, password } = await request.all()
+        const { username, password, name, last_name, email } = await request.all()
 
         let insertParams = {
             username,
-            name: 'Santiago',
-            last_name: 'Galvan',
-            email: 'santiagon.g.m@gmail.com',
+            name,
+            last_name,
+            email,
             password: await Hash.make(password),
             created_at: DateTime.local().toISO(),
             updated_at: DateTime.local().toISO()
@@ -31,13 +29,11 @@ const register = async ({ request, response, auth }: HttpContextContract) => {
             .table('users')
             .insert(insertParams)
 
-        console.log('insertParams', insertParams);
-
-        return response.json({ message: "holaa desde register" })
+        return response.json({ message: "Usuario Registrado Correctamente" })
     } catch (e) {
         console.error(e)
         renderParams.notification.message = e.message
-        return response.json(renderParams)
+        return response.badRequest(renderParams);
     }
 }
 

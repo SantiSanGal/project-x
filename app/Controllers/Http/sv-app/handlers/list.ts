@@ -1,6 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-const list = async ({ request, response, auth }: HttpContextContract) => {
+export const list = async ({ request, response, auth }: HttpContextContract) => {
     // render generico
     const renderParams: any = {
         data: {},
@@ -12,13 +12,11 @@ const list = async ({ request, response, auth }: HttpContextContract) => {
     }
     try {
         console.log('xd');
-        
-        return response.json({message: "list"})
+
+        return response.json({ message: "list" })
     } catch (e) {
         console.error(e)
         renderParams.notification.message = e.message
         return response.json(renderParams)
     }
 }
-
-export { list }

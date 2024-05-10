@@ -1,2 +1,2 @@
 import './sv-auth/auth'
-import './sv-app/list'
+import './sv-app/canvas'

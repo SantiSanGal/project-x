@@ -8,33 +8,11 @@ export default class Controller {
     return verify(params)
   }
 
-  public async register(request, response, auth) {
-    const params: any = {
-      request,
-      response,
-      auth
-    }
-
+  public async register(params: HttpContextContract) {
     return register(params)
   }
 
-  // public async register(request, response, auth) {
-  //   const params: any = {
-  //     request,
-  //     response,
-  //     auth
-  //   }
-
-  //   return register(params)
-  // }
-
-  public async logout(request, response, auth) {
-    const params: any = {
-      request,
-      response,
-      auth
-    }
-
+  public async logout(params: HttpContextContract) {
     return logout(params)
   }
 }
