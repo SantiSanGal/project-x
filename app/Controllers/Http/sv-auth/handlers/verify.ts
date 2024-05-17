@@ -10,10 +10,8 @@ const verify = async ({ request, response, auth }: HttpContextContract) => {
         },
     }
     try {
-        const { username, password } = await request.all()
+        const { username, password } = await request.all();        
         const token = await auth.attempt(username, password);
-        console.log('token', token);
-
         return response.ok({ token: token })
     } catch (e) {
         console.error(e)

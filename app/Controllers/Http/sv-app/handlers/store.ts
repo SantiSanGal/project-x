@@ -10,7 +10,6 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     }
 
     try {
-        console.log('xd desde store canvas');
         return response.json({ message: 'xd oiko\'i' })
     } catch (error) {
         return response.json(params)
