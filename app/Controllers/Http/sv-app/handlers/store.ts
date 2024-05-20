@@ -3,7 +3,6 @@ import Database from '@ioc:Adonis/Lucid/Database';
 export const store = async ({ request, response, auth }: HttpContextContract) => {
 
     let params = {
-        data: {},
         notification: {
             state: false,
             type: 'error',
