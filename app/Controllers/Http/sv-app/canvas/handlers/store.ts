@@ -1,6 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
-export const store = async ({ request, response, auth }: HttpContextContract) => {
+export const store = async ({ request, response }: HttpContextContract) => {
 
     let params = {
         notification: {
@@ -48,8 +48,7 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
         return response.json(params)
     } catch (error) {
         console.log('error', error);
-        
         await trx.rollback();
-        return response.json(params)
+        return response.status(500).json(params)
     }
 }

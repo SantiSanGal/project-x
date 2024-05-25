@@ -1,7 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 
-export const list = async ({ request, response, auth }: HttpContextContract) => {
+export const list = async ({ response, auth }: HttpContextContract) => {
     let params = {
         data: {},
         notification: {
