@@ -11,15 +11,18 @@ export const list = async ({ request, response, auth }: HttpContextContract) => 
         }
     }
     try {
-        
+
         const data = await Database.connection('pg')
             .query()
-            .select('gp.link_adjunta', 'dc.fecha', 'dc.monto')
+            .select(
+                'dc.id_datos_compra',
+                'gp.link_adjunta',
+                Database.raw("to_char(dc.fecha, 'YYYY-MM-DD') as fecha"),
+                'dc.monto'
+            )
             .from('grupos_pixeles as gp')
             .join('datos_compras as dc', 'dc.id_datos_compra', 'gp.id_datos_compra')
             .where('dc.id_usuario', `${auth.user?.id}`)
-            // .leftJoin('datos_compras as dc', 'dc.id_datos_compra', 'gp.id_datos_compra')
-
 
         params.data = data
         params.notification.state = true
@@ -27,6 +30,7 @@ export const list = async ({ request, response, auth }: HttpContextContract) => 
         params.notification.message = 'Listado Correctamente'
         return response.json(params)
     } catch (error) {
-        return response.json(params)
+        console.log('error', error);
+        return response.status(500).json(params)
     }
 }
