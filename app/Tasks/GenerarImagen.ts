@@ -1,6 +1,6 @@
 import Database from '@ioc:Adonis/Lucid/Database';
-import { BaseTask, CronTimeV2 } from 'adonis5-scheduler/build/src/Scheduler/Task'
-import { createCanvas } from 'canvas';
+import { BaseTask } from 'adonis5-scheduler/build/src/Scheduler/Task'
+import { createCanvas, loadImage } from 'canvas';
 import { DateTime } from 'luxon';
 import path from 'path';
 import fs from 'fs';
@@ -8,35 +8,44 @@ import fs from 'fs';
 export default class GenerarImagen extends BaseTask {
   public static get schedule() {
     return '0 * * * * *'
-    // return CronTimeV2.everySecond()
   }
 
-  /**
-   * Set enable use .lock file for block run retry task
-   * Lock file save to `build/tmp/adonis5-scheduler/locks/your-class-name`
-   */
   public static get useLock() {
     return false
   }
 
   public async handle() {
-    console.log('hola soy el job');
     const now = DateTime.now()
     console.log(now.toFormat('yyyy-MM-dd HH:mm:ss'));
 
     const data = await Database.connection('pg')
       .query()
       .from('pixeles_individuales')
+      .where('pintado', '!=', true)
+      .orWhereNull('pintado');
+
+    let pixelesIds = new Array();
+    const imagePath = path.join(__dirname, './../../', 'public', 'actual.png')
+    const previousImagesPath = path.join(__dirname, './../../', 'public', 'anteriores')
+
+    // Crear la carpeta "Anteriores" si no existe
+    if (!fs.existsSync(previousImagesPath)) {
+      fs.mkdirSync(previousImagesPath);
+    }
 
     const canvas = createCanvas(2000, 1000)
     const ctx = canvas.getContext('2d')
-
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    data.forEach(item => {
-      const { coordenada_x, coordenada_y, color } = item
+    if (fs.existsSync(imagePath)) {
+      const image = await loadImage(imagePath)
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+    }
 
+    data.forEach(item => {
+      const { id_pixel_individual, coordenada_x, coordenada_y, color } = item
+      pixelesIds.push(id_pixel_individual)
       // Validar color
       if (!/^#[0-9A-F]{6}$/i.test(color)) {
         console.error(`Color inválido: ${color}`)
@@ -47,12 +56,23 @@ export default class GenerarImagen extends BaseTask {
       ctx.fillRect(coordenada_x, coordenada_y, 1, 1) // Pintar un pixel en la coordenada
     })
 
+    // Mover la imagen llamada "actual" a la carpeta "anteriores"
+    if (fs.existsSync(imagePath)) {
+      const oldImagePath = path.join(previousImagesPath, `${now.toFormat('yyyyMMdd_HHmmss')}.png`)
+      fs.renameSync(imagePath, oldImagePath);
+    }
 
+    //creación de la imagen nueva
     const buffer = canvas.toBuffer('image/png')
-    const imagePath = path.join(__dirname, './../../', 'public', 'images', 'outputScheduler.png')
-    fs.writeFileSync(imagePath, buffer)
+    const newImagePath = path.join(__dirname, './../../', 'public', 'actual.png')
+    fs.writeFileSync(newImagePath, buffer)
 
-    // Remove this promise and insert your code:
-    await new Promise((res) => setTimeout(res, 2000))
+    // Actualizar la columna "pintado" a true para los píxeles obtenidos
+    await Database.connection('pg')
+      .from('pixeles_individuales')
+      .whereIn('id_pixel_individual', pixelesIds)
+      .update({ pintado: true });
+
+    console.log('Pixeles actualizados:', pixelesIds);
   }
 }
