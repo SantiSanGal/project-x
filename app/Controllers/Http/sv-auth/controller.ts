@@ -1,11 +1,12 @@
+import { login } from './handlers/login';
 import { logout } from './handlers/logout'
 import { register } from './handlers/register'
-import { verify } from './handlers/verify'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import { verify } from './handlers/verify';
 
 export default class Controller {
-  public async verify(params: HttpContextContract) {
-    return verify(params)
+  public async login(params: HttpContextContract) {
+    return login(params)
   }
 
   public async register(params: HttpContextContract) {
@@ -14,5 +15,9 @@ export default class Controller {
 
   public async logout(params: HttpContextContract) {
     return logout(params)
+  }
+
+  public async verify(params: HttpContextContract) {
+    return verify(params)
   }
 }
