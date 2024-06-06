@@ -15,6 +15,13 @@ export const login = async ({ request, response, auth }: HttpContextContract) =>
         return response.ok({ token: token })
     } catch (e) {
         console.error(e)
+        if (e.message === 'E_INVALID_AUTH_PASSWORD: Password mis-match') {
+            return response.unauthorized({ message: 'Contraseña Incorrecta' });
+        }
+        
+        if (e.message === 'E_INVALID_AUTH_UID: User not found') {
+            return response.unauthorized({ message: 'Usuario no existe' });
+        }
         renderParams.notification.message = e.message
         return response.json(renderParams)
     }
