@@ -6,6 +6,6 @@ export const update = async ({ request, response, auth }: HttpContextContract) =
         console.log('auth', auth);
         return response.json({ message: 'update' })
     } catch (error) {
-        return response.status(500).json({ message: 'password' })
+        return response.status(500).json({ message: 'Error en el servidor' })
     }
 }

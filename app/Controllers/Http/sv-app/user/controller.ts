@@ -3,7 +3,7 @@ import { list } from './handlers/list';
 import { update } from './handlers/update';
 import { password } from './handlers/password';
 export default class Controller {
-    public async list(params: HttpContextContract) { //list de los datos del usuario
+    public async list(params: HttpContextContract) {
         return list(params)
     }
 
