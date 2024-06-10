@@ -8,6 +8,7 @@ export const verify = async ({ request, response, auth }: HttpContextContract) =
 
     try {
         const authenticate = await auth.use('api').authenticate();
+        console.log('authenticate', authenticate);
         response.json({ message: 'token valido' })
     } catch (error) {
         response.status(401).json({ message: 'token invalido' })
