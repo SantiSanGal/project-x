@@ -1,8 +1,8 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 import { DateTime } from 'luxon';
-export const store = async ({ request, response, auth }: HttpContextContract) => {
 
+export const store = async ({ request, response, auth }: HttpContextContract) => {
     let params = {
         notification: {
             state: false,
