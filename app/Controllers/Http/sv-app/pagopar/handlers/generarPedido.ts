@@ -3,7 +3,7 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import axios from 'axios';
 import crypto from 'crypto'
 
-export const generarPedido = async ({ request, response, auth }: HttpContextContract) => {
+export const generarPedido = async ({ response, auth }: HttpContextContract) => {
     let params = {
         notification: {
             state: false,
@@ -39,6 +39,8 @@ export const generarPedido = async ({ request, response, auth }: HttpContextCont
 
         //hacer el post a pagopar y actualizar la tabla de pedido con el token que viene de respuesta en data
         const res = await axios.post('test')
+
+      console.log('res', res);
 
         console.log('hash', hash);
     } catch (e) {
