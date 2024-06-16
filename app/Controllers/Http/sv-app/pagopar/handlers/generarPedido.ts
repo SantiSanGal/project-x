@@ -1,7 +1,8 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database';
-import axios from 'axios';
+// import axios from 'axios';
 import crypto from 'crypto'
+import { DateTime } from 'luxon';
 
 export const generarPedido = async ({ response, auth }: HttpContextContract) => {
     let params = {
@@ -15,34 +16,33 @@ export const generarPedido = async ({ response, auth }: HttpContextContract) => 
     const trx = await Database.transaction();
 
     try {
-
         const userId = auth.user?.id
-
         if (userId === undefined) {
             return response.status(400).json({ message: 'User ID is not available' });
         }
 
+        const insert_datos_pedido = {
+            id_usuario: userId,
+            monto: 25.00, //por el momento, siempre será 25
+            created_at: DateTime.local().toISO(),
+            updated_at: DateTime.local().toISO(),
+            pagado: false
+        }
+
+        const [{ id_pedido }] = await trx.table('pedidos').insert(insert_datos_pedido).returning('id_pedido')
+        await trx.commit();
+
         const datos = {
             comercio_token_privado: 'tu_token_privado'
         };
-
-        const datos_pedido = {}
-
-        const [{ id_pedido }] = await trx.table('pedidos').insert(datos_pedido).returning('id_pedido')
-        await trx.commit();
-
-        const idPedido = id_pedido;
-        const monto_total = 25.00; //siempre va a ser 25
-
-        const cadenaParaHash = datos.comercio_token_privado + idPedido + String(monto_total);
+        const cadenaParaHash = datos.comercio_token_privado + id_pedido + String(insert_datos_pedido.monto);
         const hash = crypto.createHash('sha1').update(cadenaParaHash).digest('hex');
 
         //hacer el post a pagopar y actualizar la tabla de pedido con el token que viene de respuesta en data
-        const res = await axios.post('test')
-
-      console.log('res', res);
+        // const res = await axios.post('test')
 
         console.log('hash', hash);
+        return response.json({ hash: hash })
     } catch (e) {
         console.log(e);
         await trx.rollback();

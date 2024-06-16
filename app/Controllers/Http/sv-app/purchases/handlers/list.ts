@@ -11,7 +11,6 @@ export const list = async ({ response, auth }: HttpContextContract) => {
         }
     }
     try {
-
         const data = await Database.connection('pg')
             .query()
             .select(
