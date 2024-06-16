@@ -35,11 +35,12 @@ export const generarPedido = async ({ response, auth }: HttpContextContract) => 
         const datos = {
             comercio_token_privado: 'tu_token_privado'
         };
+
         const cadenaParaHash = datos.comercio_token_privado + id_pedido + String(insert_datos_pedido.monto);
         const hash = crypto.createHash('sha1').update(cadenaParaHash).digest('hex');
 
         //hacer el post a pagopar y actualizar la tabla de pedido con el token que viene de respuesta en data
-        // const res = await axios.post('test')
+        // const res = await axios.post('https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion')
 
         console.log('hash', hash);
         return response.json({ hash: hash })
