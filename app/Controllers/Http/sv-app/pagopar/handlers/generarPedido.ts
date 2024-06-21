@@ -18,6 +18,7 @@ export const generarPedido = async ({ response, auth }: HttpContextContract) => 
     try {
         const userId = auth.user?.id
         if (userId === undefined) {
+            await trx.rollback();
             return response.status(400).json({ message: 'User ID is not available' });
         }
 

@@ -1,6 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { list } from './handlers/list';
-import { update } from './handlers/update';
+import { update } from './handlers/edit';
 import { password } from './handlers/password';
 export default class Controller {
     public async list(params: HttpContextContract) {

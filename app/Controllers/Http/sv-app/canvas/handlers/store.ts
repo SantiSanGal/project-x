@@ -19,6 +19,7 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
         const userId = auth.user?.id
 
         if (userId === undefined) {
+            await trx.rollback();
             return response.status(400).json({ message: 'User ID is not available' });
         }
 

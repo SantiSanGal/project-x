@@ -15,6 +15,8 @@ export const list = async ({ response }: HttpContextContract) => {
         const data = await Database.connection('pg')
             .query()
             .from('pixeles_individuales')
+            .where('pintado', '!=', true)
+            .orWhereNull('pintado');
 
         params.data = data
         params.notification.state = true

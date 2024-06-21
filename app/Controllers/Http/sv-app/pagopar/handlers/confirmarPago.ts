@@ -15,7 +15,8 @@ export const confirmarPago = async ({ request, response }: HttpContextContract) 
   try {
     const { resultado, respuesta } = await request.all()
 
-    const { pagado,
+    const { 
+      pagado, // viene booleano
       numero_comprobante_interno,
       ultimo_mensaje_error,
       forma_pago,
@@ -29,7 +30,8 @@ export const confirmarPago = async ({ request, response }: HttpContextContract) 
       token
     } = resultado
 
-    logger.info(pagado,
+    logger.info(
+      pagado,
       numero_comprobante_interno,
       ultimo_mensaje_error,
       forma_pago,

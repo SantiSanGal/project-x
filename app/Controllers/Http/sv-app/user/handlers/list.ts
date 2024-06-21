@@ -2,6 +2,15 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 
 export const list = async ({ response, auth }: HttpContextContract) => {
+    let params = {
+        data: {},
+        notification: {
+            state: false,
+            type: 'error',
+            message: 'Error en el Servidor'
+        }
+    }
+
     try {
         const userId = auth.user?.id;
 
@@ -15,8 +24,12 @@ export const list = async ({ response, auth }: HttpContextContract) => {
             .from('users')
             .where('id', '=', userId);
 
-        return response.json(data);
+        params.data = data
+        params.notification.state = true
+        params.notification.type = 'success'
+        params.notification.message = 'Listado Correctamente'
+        return response.json(params)
     } catch (error) {
-        return response.status(500).json({ message: 'Error en el servidor' })
+        return response.status(500).json(params)
     }
 }

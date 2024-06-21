@@ -10,6 +10,7 @@ export const list = async ({ response, auth }: HttpContextContract) => {
             message: 'Error en el Servidor'
         }
     }
+    
     try {
         const data = await Database.connection('pg')
             .query()

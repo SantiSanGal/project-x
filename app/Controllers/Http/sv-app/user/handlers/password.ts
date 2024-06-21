@@ -5,21 +5,25 @@ import { DateTime } from 'luxon';
 
 export const password = async ({ request, response, auth }: HttpContextContract) => {
     const trx = await Database.transaction()
+    
     try {
         const username = auth.user?.username
         const userId = auth.user?.id
 
         if (username === undefined) {
+            await trx.rollback();
             return response.status(400).json({ message: 'Username is not available' });
         }
 
         if (userId === undefined) {
+            await trx.rollback();
             return response.status(400).json({ message: 'User ID is not available' });
         }
 
         const { newPassword, oldPassword } = await request.all()
 
         if (!newPassword || !oldPassword || newPassword == '' || oldPassword == '') {
+            await trx.rollback();
             return response.badRequest({ message: 'Contraseñas Requerida' })
         }
 
