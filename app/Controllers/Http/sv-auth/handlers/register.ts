@@ -37,8 +37,6 @@ const register = async ({ request, response }: HttpContextContract) => {
             return response.unauthorized({ message: e.messages });
         }
 
-        
-
         renderParams.notification.message = e.message
         return response.badRequest(renderParams);
     }

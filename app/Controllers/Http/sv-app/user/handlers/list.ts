@@ -18,7 +18,7 @@ export const list = async ({ response, auth }: HttpContextContract) => {
             return response.status(400).json({ message: 'User ID is not available' });
         }
 
-        const data = await Database.connection('pg')
+        const [data] = await Database.connection('pg')
             .query()
             .select('username', 'name', 'last_name', 'email')
             .from('users')

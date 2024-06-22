@@ -1,6 +1,6 @@
 import { schema, CustomMessages, rules } from '@ioc:Adonis/Core/Validator'
 
-export default class resgisterValidator {
+export default class userEditValidator {
     public schema = schema.create({
         name: schema.string({ trim: true }, [
             rules.required(),
@@ -30,11 +30,8 @@ export default class resgisterValidator {
                 column: 'username'
             })
         ]),
-        password: schema.string({ trim: true }, [
-            rules.required(),
-            rules.minLength(8),
-            rules.maxLength(255)
-        ])
+        country: schema.number.nullableAndOptional(),
+        city: schema.number.nullableAndOptional()
     })
 
     public messages: CustomMessages = {

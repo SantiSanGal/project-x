@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
+import userEditValidator from 'App/Validators/sv-app/userEditValidator';
 
 export const update = async ({ request, response, auth }: HttpContextContract) => {
     const trx = await Database.transaction();
@@ -13,9 +14,23 @@ export const update = async ({ request, response, auth }: HttpContextContract) =
     }
 
     try {
-        console.log('request', request);
-        console.log('auth', auth);
+        const userId = auth.user?.id
+        if (userId === undefined) {
+            await trx.rollback();
+            return response.status(400).json({ message: 'User ID is not available' });
+        }
 
+        const { username, name, last_name, email, country, city } = await request.validate(userEditValidator)
+        console.log(username, name, last_name, email, country, city);
+
+        console.log('country', country);
+        console.log('city', city);
+
+        let update_user_params = {
+            username, name, last_name, email
+        }
+
+        await trx.from('users').where('id', userId).update(update_user_params)
         await trx.commit();
         params.notification.state = true
         params.notification.type = 'success'
@@ -24,6 +39,9 @@ export const update = async ({ request, response, auth }: HttpContextContract) =
     } catch (e) {
         await trx.rollback();
         console.log('e', e);
+        if (e.message == 'E_VALIDATION_FAILURE: Validation Exception') {
+            return response.unauthorized({ message: e.messages });
+        }
         return response.status(500).json(params)
     }
 }
