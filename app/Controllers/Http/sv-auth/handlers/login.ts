@@ -12,7 +12,9 @@ export const login = async ({ request, response, auth }: HttpContextContract) =>
     }
     try {
         const { username, password } = await request.validate(authValidator);
-        const token = await auth.attempt(username, password);
+        const token = await auth.attempt(username, password, {
+            expiresIn: '1 days'
+        });
         return response.ok({ token: token })
     } catch (e) {
         if (e.message == 'E_VALIDATION_FAILURE: Validation Exception') {
@@ -26,7 +28,7 @@ export const login = async ({ request, response, auth }: HttpContextContract) =>
         if (e.message === 'E_INVALID_AUTH_UID: User not found') {
             return response.unauthorized({ message: 'Usuario no existe' });
         }
-        
+
         renderParams.notification.message = e.message
         return response.json(renderParams)
     }

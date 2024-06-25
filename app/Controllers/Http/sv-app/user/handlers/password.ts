@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 
 export const password = async ({ request, response, auth }: HttpContextContract) => {
     const trx = await Database.transaction()
-    
+
     try {
         const username = auth.user?.username
         const userId = auth.user?.id
