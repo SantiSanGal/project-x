@@ -12,6 +12,8 @@ export const logout = async ({ request, response, auth }: HttpContextContract) =
         },
     }
     try {
+        console.log('entra handle');
+        
         await trx.from('api_tokens').where('user_id', auth.user?.id).update({ expires_at: DateTime.local().toISO() })
         await trx.commit()
         console.log('commit trx');

@@ -3,6 +3,7 @@ import Database from '@ioc:Adonis/Lucid/Database';
 
 export const rangosOcupados = async ({ request, response }: HttpContextContract) => {
     let params = {
+        data: {},
         notification: {
             state: false,
             type: 'error',
@@ -10,39 +11,35 @@ export const rangosOcupados = async ({ request, response }: HttpContextContract)
         }
     }
 
+    const consultar = {
+        1: {
+            x: [0, 999],
+            y: [0, 499]
+        },
+        2: {
+            x: [1000, 1999],
+            y: [0, 499]
+        },
+        3: {
+            x: [0, 999],
+            y: [500, 999]
+        },
+        4: {
+            x: [1000, 1999],
+            y: [500, 999]
+        },
+    }
+
     try {
         const idSector = request.param('idSector')
-        console.log('idSector', idSector);
 
-        const sector1 = await Database.connection('pg')
+        const data = await Database.connection('pg')
             .query()
             .from('grupos_pixeles')
-            .where('coordenada_x_inicio', '>=', 0).where('coordenada_x_fin', '<=', 999)
-            .andWhere('coordenada_y_inicio', '>=', 0).where('coordenada_y_fin', '<=', 499);
+            .where('coordenada_x_inicio', '>=', consultar[idSector].x[0]).where('coordenada_x_fin', '<=', consultar[idSector].x[1])
+            .andWhere('coordenada_y_inicio', '>=', consultar[idSector].y[0]).where('coordenada_y_fin', '<=', consultar[idSector].y[1]);
 
-        const sector2 = await Database.connection('pg')
-            .query()
-            .from('grupos_pixeles')
-            .where('coordenada_x_inicio', '>=', 1000).where('coordenada_x_fin', '<=', 1999)
-            .andWhere('coordenada_y_inicio', '>=', 0).where('coordenada_y_fin', '<=', 499);
-
-        const sector3 = await Database.connection('pg')
-            .query()
-            .from('grupos_pixeles')
-            .where('coordenada_x_inicio', '>=', 0).where('coordenada_x_fin', '<=', 999)
-            .andWhere('coordenada_y_inicio', '>=', 500).where('coordenada_y_fin', '<=', 999);
-
-        const sector4 = await Database.connection('pg')
-            .query()
-            .from('grupos_pixeles')
-            .where('coordenada_x_inicio', '>=', 1000).where('coordenada_x_fin', '<=', 1999)
-            .andWhere('coordenada_y_inicio', '>=', 500).where('coordenada_y_fin', '<=', 999);
-
-        // console.log('Sector 1:', sector1);
-        // console.log('Sector 2:', sector2);
-        // console.log('Sector 3:', sector3);
-        // console.log('Sector 4:', sector4);
-
+        params.data = data
         params.notification.state = true
         params.notification.type = 'success'
         params.notification.message = 'Listado Correctamente'
