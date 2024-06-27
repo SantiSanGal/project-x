@@ -5,4 +5,5 @@ Route.group(() => {
     Route.post('/logout', 'sv-auth/controller.logout')
     Route.post('/register', 'sv-auth/controller.register')
     Route.get('/verify', 'sv-auth/controller.verify')
+    Route.post('/forgot-password', 'sv-auth/controller.forgotPassword')
 }).prefix('/auth')

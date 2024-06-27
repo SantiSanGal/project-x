@@ -27,7 +27,7 @@ export const rangosOcupados = async ({ request, response }: HttpContextContract)
         4: {
             x: [1000, 1999],
             y: [500, 999]
-        },
+        }
     }
 
     try {

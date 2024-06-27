@@ -1,6 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 
+//Get de los pixeles sin pintar
 export const list = async ({ response }: HttpContextContract) => {
     let params = {
         data: {},
