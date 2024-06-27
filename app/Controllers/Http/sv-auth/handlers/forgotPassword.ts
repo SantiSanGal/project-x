@@ -1,10 +1,9 @@
-import Mail from '@ioc:Adonis/Addons/Mail';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import { SendMail } from 'App/Utils/SendMail';
 import forgotPasswordValidator from 'App/Validators/sv-auth/forgotPasswordValidator';
 
 export const forgotPassword = async ({ request, response }: HttpContextContract) => {
-    const renderParams: any = {
-        data: {},
+    const params: any = {
         notification: {
             state: false,
             type: 'error',
@@ -15,13 +14,14 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
     try {
         //TODO: hacer que envíe un mail que redireccione a una página para recuperar la contraseña 
         const { email } = await request.validate(forgotPasswordValidator)
-        await Mail.use('smtp').send((message) => {
-            message.from('santiago.patiasoc@gmail.com').to(email);
-            message.subject('test subject').html('test html');
-        })
-        return response.ok({ message: 'forgot Password' })
+        await SendMail(email)
+
+        params.notification.state = true
+        params.notification.type = 'success'
+        params.notification.message = 'Mail Enviado Correctamente'
+        return response.ok(params)
     } catch (e) {
         console.log(e);
-        return response.json(renderParams)
+        return response.json(params)
     }
 }

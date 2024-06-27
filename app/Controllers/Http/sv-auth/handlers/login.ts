@@ -2,7 +2,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import authValidator from 'App/Validators/sv-auth/authValidator';
 
 export const login = async ({ request, response, auth }: HttpContextContract) => {
-    const renderParams: any = {
+    const params: any = {
         data: {},
         notification: {
             state: false,
@@ -15,7 +15,12 @@ export const login = async ({ request, response, auth }: HttpContextContract) =>
         const token = await auth.attempt(username, password, {
             expiresIn: '1 days'
         });
-        return response.ok({ token: token })
+
+        params.data.token = token
+        params.notification.state = true
+        params.notification.type = 'success'
+        params.notification.message = 'Inicio Sesión Correctamente'
+        return response.ok(params)
     } catch (e) {
         if (e.message == 'E_VALIDATION_FAILURE: Validation Exception') {
             return response.unauthorized({ message: e.messages });
@@ -29,7 +34,7 @@ export const login = async ({ request, response, auth }: HttpContextContract) =>
             return response.unauthorized({ message: 'Usuario no existe' });
         }
 
-        renderParams.notification.message = e.message
-        return response.json(renderParams)
+        params.notification.message = e.message
+        return response.json(params)
     }
 }

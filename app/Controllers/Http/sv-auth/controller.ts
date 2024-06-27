@@ -1,5 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { forgotPassword, login, logout, register, verify } from './handlers';
+import { forgotPassword, login, logout, register } from './handlers';
 
 export default class Controller {
   public async login(params: HttpContextContract) {
@@ -13,10 +13,6 @@ export default class Controller {
   public async logout(params: HttpContextContract) {
     console.log('entra controller');
     return logout(params)
-  }
-
-  public async verify(params: HttpContextContract) {
-    return verify(params)
   }
 
   public async forgotPassword(params: HttpContextContract) {

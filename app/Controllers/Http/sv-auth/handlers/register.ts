@@ -4,9 +4,8 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import resgisterValidator from 'App/Validators/sv-auth/registerValidator';
 import { DateTime } from 'luxon';
 
-const register = async ({ request, response }: HttpContextContract) => {
-    const renderParams: any = {
-        data: {},
+export const register = async ({ request, response }: HttpContextContract) => {
+    const params: any = {
         notification: {
             state: false,
             type: 'error',
@@ -22,24 +21,24 @@ const register = async ({ request, response }: HttpContextContract) => {
             last_name,
             email,
             password: await Hash.make(password),
-            created_at: DateTime.local().toISO(),
-            updated_at: DateTime.local().toISO()
+            created_at: DateTime.local().toISO()
         }
 
         await Database.connection('pg')
             .table('users')
             .insert(insertParams)
 
-        return response.json({ message: "Usuario Registrado Correctamente" })
+        params.notification.state = true
+        params.notification.type = 'success'
+        params.notification.message = 'Usuario Registrado Correctamente'
+        return response.json(params)
     } catch (e) {
         console.error(e)
         if (e.message == 'E_VALIDATION_FAILURE: Validation Exception') {
             return response.unauthorized({ message: e.messages });
         }
 
-        renderParams.notification.message = e.message
-        return response.badRequest(renderParams);
+        params.notification.message = e.message
+        return response.badRequest(params);
     }
 }
-
-export { register }
