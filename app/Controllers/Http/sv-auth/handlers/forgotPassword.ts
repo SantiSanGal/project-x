@@ -1,6 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { SendMail } from 'App/Utils/SendMail';
 import forgotPasswordValidator from 'App/Validators/sv-auth/forgotPasswordValidator';
+import crypto from 'crypto';
 
 export const forgotPassword = async ({ request, response }: HttpContextContract) => {
     const params: any = {
@@ -12,9 +13,12 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
     }
 
     try {
-        //TODO: hacer que envíe un mail que redireccione a una página para recuperar la contraseña 
         const { email } = await request.validate(forgotPasswordValidator)
-        const htmlParam = await resetPasswordMail()
+
+        //TODO: Consultar a què usuario corresponde el email y guardar en la tabla de contraseñas temporales la contraseña generada
+        
+        const temporaryPassword = generateTemporaryPassword();
+        const htmlParam = await resetPasswordMail(temporaryPassword)
         await SendMail(email, htmlParam)
 
         params.notification.state = true
@@ -27,7 +31,11 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
     }
 }
 
-const resetPasswordMail = async () => {
+const generateTemporaryPassword = (): string => {
+    return crypto.randomBytes(4).toString('hex'); // Genera 8 caracteres hexadecimales
+}
+
+const resetPasswordMail = async (temporaryPassword: string) => {
     let html = ''
     html += `<!DOCTYPE html>`
     html += `<html lang="en">`
@@ -60,7 +68,10 @@ const resetPasswordMail = async () => {
     html += `        }`
     html += `        .content {`
     html += `            line-height: 1.6;`
-    html += `            color: aliceblue;`
+    html += `            color: aliceblue !important;`
+    html += `        }`
+    html += `        .content p {`
+    html += `            color: aliceblue!important;`
     html += `        }`
     html += `        .button {`
     html += `            display: block;`
@@ -91,8 +102,9 @@ const resetPasswordMail = async () => {
     html += `        </div>`
     html += `        <div class="content">`
     html += `            <p>Hello,</p>`
-    html += `            <p>You have requested to reset your password. Please click the button below to proceed with the reset.</p>`
-    html += `            <a href="http://localhost:5173/login" class="button">Reset Password</a>`
+    html += `            <p>You have requested to reset your password. Your temporary password is:</p>`
+    html += `             <h1>${temporaryPassword}</h1>`
+    html += `            <p>Please use this password to log in and reset your password immediately. This temporary password will be available for 24 hours.</p>`
     html += `            <p>If you did not request this change, you can ignore this email.</p>`
     html += `            <p>Thank you,</p>`
     html += `            <p>The Pixel War Team</p>`
