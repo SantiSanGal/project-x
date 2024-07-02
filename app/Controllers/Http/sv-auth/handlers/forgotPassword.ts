@@ -1,9 +1,14 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import { SendMail } from 'App/Utils/SendMail';
 import forgotPasswordValidator from 'App/Validators/sv-auth/forgotPasswordValidator';
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import Database from '@ioc:Adonis/Lucid/Database';
+import { SendMail } from 'App/Utils/SendMail';
+import Hash from '@ioc:Adonis/Core/Hash';
+import { DateTime } from 'luxon';
 import crypto from 'crypto';
 
 export const forgotPassword = async ({ request, response }: HttpContextContract) => {
+    const trx = await Database.transaction();
+
     const params: any = {
         notification: {
             state: false,
@@ -14,10 +19,24 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
 
     try {
         const { email } = await request.validate(forgotPasswordValidator)
-
-        //TODO: Consultar a què usuario corresponde el email y guardar en la tabla de contraseñas temporales la contraseña generada
-        
         const temporaryPassword = generateTemporaryPassword();
+        const [{ id }] = await Database.connection('pg')
+            .query()
+            .select('id')
+            .from('users')
+            .where('email', email)
+
+        let temporary_password_insert_params = {
+            user_id: id,
+            temporary_password: await Hash.make(temporaryPassword),
+            created_at: DateTime.local().toISO(),
+            expires_at: DateTime.local().plus({ hours: 24 }).toISO()
+        };
+
+        await trx.from('contrasenhas_temporales').where('user_id', id).update({ expires_at: DateTime.local().minus({ hours: 1 }).toISO() })
+        await trx.table('contrasenhas_temporales').insert(temporary_password_insert_params)
+        await trx.commit();
+
         const htmlParam = await resetPasswordMail(temporaryPassword)
         await SendMail(email, htmlParam)
 
@@ -26,6 +45,7 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
         params.notification.message = 'Mail Enviado Correctamente'
         return response.ok(params)
     } catch (e) {
+        await trx.rollback();
         console.log(e);
         return response.json(params)
     }
