@@ -11,9 +11,9 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
 
     const params: any = {
         notification: {
-            state: false,
-            type: 'error',
-            message: 'Error en servidor',
+            state: true,
+            type: 'success',
+            message: 'If this email address exists, you will receive instructions to reset your password.',
         },
     }
 
@@ -40,14 +40,11 @@ export const forgotPassword = async ({ request, response }: HttpContextContract)
         const htmlParam = await resetPasswordMail(temporaryPassword)
         await SendMail(email, htmlParam)
 
-        params.notification.state = true
-        params.notification.type = 'success'
-        params.notification.message = 'Mail Enviado Correctamente'
         return response.ok(params)
     } catch (e) {
         await trx.rollback();
         console.log(e);
-        return response.json(params)
+        return response.ok(params)
     }
 }
 

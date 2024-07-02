@@ -16,6 +16,14 @@ export const generarPedido = async ({ response, auth }: HttpContextContract) => 
     const trx = await Database.transaction();
 
     try {
+
+        /**
+         * TODO: Crear una tabla de "Rangos en procesos ocupados", para setear los rangos que estén en proceso de compra
+         * que tenga una validez de //! 5min.
+         * Cuando el usuario clickea en un rango de 5*5 que quiera comprar (agregar catpcha), consulta este endpoint, 
+         * verifica si no tiene un proceso pendiente. SI NO tiene pendiente, agregar como proceso pendiente y generar 
+         * pedido en la pasarela pagopar. SI Tiene pendiente, no dejar hacer nada.
+         */
         const userId = auth.user?.id
         if (userId === undefined) {
             await trx.rollback();
