@@ -1,6 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
-import userEditValidator from 'App/Validators/sv-app/userEditValidator';
+import userEditValidator from 'App/Validators/sv-app/user/userEditValidator';
 
 export const update = async ({ request, response, auth }: HttpContextContract) => {
     const trx = await Database.transaction();

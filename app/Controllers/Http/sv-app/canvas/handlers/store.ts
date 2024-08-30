@@ -14,7 +14,7 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     const trx = await Database.transaction();
 
     try {
-        const { grupo_pixeles, pixeles } = request.all()
+        const { grupo_pixeles, pixeles } = request.all() //TODO: Agregar validator
 
         const userId = auth.user?.id
 
