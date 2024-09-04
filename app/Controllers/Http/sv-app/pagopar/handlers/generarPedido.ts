@@ -19,6 +19,14 @@ export const generarPedido = async ({ request, response, auth }: HttpContextCont
     const trx = await Database.transaction();
 
     try {
+
+        /*
+            1ro - Insertar en grupo pixeles los datos, CON ESTADO PROCESO COMPRA
+            2do - Insertar en pinxeles individuales los colores
+            3ro - Generar pedido pagopar
+            4to - responder con url para redirigir al chekout
+        */
+
         const { coordenada_x_inicio, coordenada_y_inicio, coordenada_x_fin, coordenada_y_fin } = await request.validate(GenerarPedidoValidator);
         const existeRegistro = await validar(coordenada_x_inicio, coordenada_y_inicio, coordenada_x_fin, coordenada_y_fin);
 
@@ -48,7 +56,7 @@ export const generarPedido = async ({ request, response, auth }: HttpContextCont
         // TODO: en caso de que se cancele, borrar o expirar
         console.log('rango_proceso_compra_id', rango_proceso_compra_id);
 
-        const insert_datos_pedido:any = {
+        const insert_datos_pedido: any = {
             id_usuario: userId,
             monto: 1000.00, //por el momento, siempre será 25
             created_at: DateTime.local().toISO(),
@@ -64,11 +72,11 @@ export const generarPedido = async ({ request, response, auth }: HttpContextCont
         };
 
         console.log('datos', datos);
-        
+
         const cadenaParaHash = datos.comercio_token_privado + id_pedido + parseFloat(insert_datos_pedido.monto);
         console.log('cadenaParaHash', cadenaParaHash);
         const hash = crypto.createHash('sha1').update(cadenaParaHash.toString()).digest('hex');
-        
+
 
         //TODO: hacer el post a pagopar y actualizar la tabla de pedido con el token que viene de respuesta en data
         // const res = await axios.post('https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion')

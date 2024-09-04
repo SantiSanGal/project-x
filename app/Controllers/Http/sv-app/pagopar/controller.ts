@@ -8,6 +8,17 @@ export default class Controller {
   }
 
   public async confirmarPago(params: HttpContextContract) {
+    console.log('confirmarPago controller');
+
     return confirmarPago(params)
+  }
+
+  public async redireccionamiento({ request, response }: HttpContextContract) {
+    const { hash } = await request.params();
+    console.log('hash', hash);
+
+    console.log('redireccionamiento');
+
+    return response.status(200).json({message: 'oikoite', hash})
   }
 }

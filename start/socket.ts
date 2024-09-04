@@ -1,13 +1,7 @@
-import Ws from 'App/Services/Ws'
-Ws.boot()
+import Ws from 'App/Services/Ws';
 
-/**
- * Listen for incoming socket connections
- */
+Ws.boot();
+
 Ws.io.on('connection', (socket) => {
-  socket.emit('news', { hello: 'world' })
-
-  socket.on('my other event', (data) => {
-    console.log(data)
-  })
-})
+  console.log('Socket Connected', socket.id);
+});

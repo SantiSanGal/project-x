@@ -4,6 +4,7 @@ import { logger } from "Config/app";
 import { DateTime } from "luxon";
 
 export const confirmarPago = async ({ request, response }: HttpContextContract) => {
+  console.log('confirmarPago handler');
   let params = {
     notification: {
       state: false,
@@ -14,6 +15,9 @@ export const confirmarPago = async ({ request, response }: HttpContextContract) 
 
   try {
     const { resultado, respuesta } = await request.all()
+
+    console.log('resultado', resultado);
+    console.log('respuesta', respuesta);
 
     const { 
       pagado, // viene booleano
