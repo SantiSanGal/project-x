@@ -1,5 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import Database from '@ioc:Adonis/Lucid/Database';
+import { getUserData } from 'App/Utils/getUserData';
 
 export const list = async ({ response, auth }: HttpContextContract) => {
     let params = {
@@ -18,13 +18,9 @@ export const list = async ({ response, auth }: HttpContextContract) => {
             return response.status(400).json({ message: 'User ID is not available' });
         }
 
-        const [data] = await Database.connection('pg')
-            .query()
-            .select('username', 'name', 'last_name', 'email')
-            .from('users')
-            .where('id', '=', userId);
+        const userData = getUserData(userId);
 
-        params.data = data
+        params.data = userData;
         params.notification.state = true
         params.notification.type = 'success'
         params.notification.message = 'Listado Correctamente'

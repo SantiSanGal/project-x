@@ -23,13 +23,13 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
             return response.status(400).json({ message: 'User ID is not available' });
         }
 
-        let datos_compras_insert_params = {
-            fecha: DateTime.local().toISO(),
-            monto: 25.00,
-            id_usuario: userId
-        }
+        // let datos_compras_insert_params = {
+        //     fecha: DateTime.local().toISO(),
+        //     monto: 25.00,
+        //     id_usuario: userId
+        // }
 
-        const [{ id_datos_compra }] = await trx.table('datos_compras').insert(datos_compras_insert_params).returning('id_datos_compra')
+        // const [{ id_datos_compra }] = await trx.table('datos_compras').insert(datos_compras_insert_params).returning('id_datos_compra')
 
         let grupo_pixel_insert_params = {
             link_adjunta: grupo_pixeles.link,
@@ -37,7 +37,7 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
             coordenada_y_inicio: grupo_pixeles.coordenada_y_inicio,
             coordenada_x_fin: grupo_pixeles.coordenada_x_fin,
             coordenada_y_fin: grupo_pixeles.coordenada_y_fin,
-            id_datos_compra: id_datos_compra
+            // id_datos_compra: id_datos_compra
         }
 
         const [{ id_grupo_pixeles }] = await trx.table('grupos_pixeles').insert(grupo_pixel_insert_params).returning('id_grupo_pixeles')
