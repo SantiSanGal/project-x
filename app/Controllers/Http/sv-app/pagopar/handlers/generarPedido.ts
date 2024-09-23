@@ -1,4 +1,4 @@
-import GenerarPedidoValidator from 'App/Validators/sv-app/pagopar/generarPedidoValidator';
+// import GenerarPedidoValidator from 'App/Validators/sv-app/pagopar/generarPedidoValidator';
 import { validar } from 'App/Utils/ValidacionUnicoRegistroProcesoCompra';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { getUserData } from 'App/Utils/getUserData';
