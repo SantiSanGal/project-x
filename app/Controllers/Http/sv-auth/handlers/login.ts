@@ -13,7 +13,7 @@ export const login = async ({
     notification: {
       state: false,
       type: "error",
-      message: "Error en servidor",
+      message: "Server Error",
     },
   };
 
