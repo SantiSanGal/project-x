@@ -34,7 +34,7 @@ export const register = async ({ request, response }: HttpContextContract) => {
     return response.json(params);
   } catch (e) {
     if (e.message == "E_VALIDATION_FAILURE: Validation Exception") {
-      return response.unauthorized({ message: e.messages });
+      return response.badRequest({ message: e.messages });
     }
     return response.badRequest(params);
   }
