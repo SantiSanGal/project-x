@@ -1,5 +1,6 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
+import Ws from "App/Services/Ws";
 
 export const store = async ({
   request,
@@ -66,6 +67,7 @@ export const store = async ({
     params.notification.state = true;
     params.notification.type = "success";
     params.notification.message = "Grupo Registrado Correctamente";
+    Ws.io.emit("nuevo_registro");
     return response.json(params);
   } catch (error) {
     console.log("error", error);

@@ -1,7 +1,7 @@
-import Ws from 'App/Services/Ws';
+import Ws from "App/Services/Ws";
 
 Ws.boot();
 
-Ws.io.on('connection', (socket) => {
-  console.log('Socket Connected', socket.id);
+Ws.io.on("connection", (socket) => {
+  console.log("Socket Connected", socket.id);
 });
