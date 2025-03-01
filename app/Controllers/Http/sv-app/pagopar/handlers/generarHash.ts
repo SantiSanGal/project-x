@@ -2,7 +2,7 @@ import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Env from "@ioc:Adonis/Core/Env";
 import crypto from "crypto";
 
-export const generarPedido = async ({ response }: HttpContextContract) => {
+export const generarHash = async ({ response }: HttpContextContract) => {
   let params = {
     notification: {
       state: false,
@@ -17,7 +17,7 @@ export const generarPedido = async ({ response }: HttpContextContract) => {
     };
 
     console.log("datos", datos);
-    const cadenaParaHash = datos.comercio_token_privado + "54" + "1"; //Token + id_pedido + monto
+    const cadenaParaHash = datos.comercio_token_privado + "1" + "1000"; //Token + id_pedido + monto
 
     console.log("cadenaParaHash", cadenaParaHash);
     const hash = crypto
@@ -26,6 +26,7 @@ export const generarPedido = async ({ response }: HttpContextContract) => {
       .digest("hex");
 
     console.log("hash", hash);
+    return response.json({ hash: hash })
   } catch (e) {
     console.log(e);
     return response.status(500).json(params);

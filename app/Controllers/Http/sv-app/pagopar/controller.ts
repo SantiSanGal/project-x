@@ -1,5 +1,6 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import { confirmarPago, generarPedido } from "./handlers";
+import { generarHash } from "./handlers/generarHash";
 
 export default class Controller {
   public async generarPedido(params: HttpContextContract) {
@@ -8,7 +9,7 @@ export default class Controller {
 
   //test
   public async generarHash(params: HttpContextContract) {
-    return generarPedido(params);
+    return generarHash(params);
   }
 
   public async confirmarPago(params: HttpContextContract) {
