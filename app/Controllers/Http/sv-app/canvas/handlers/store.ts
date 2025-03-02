@@ -6,8 +6,10 @@ import { DateTime } from "luxon";
 import crypto from 'crypto';
 import axios from 'axios';
 
+//TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
 export const store = async ({ request, response, auth }: HttpContextContract) => {
   let params = {
+    data: {},
     notification: {
       state: false,
       type: "error",
@@ -18,41 +20,100 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
   const trx = await Database.transaction();
 
   try {
-    const { grupo_pixeles, pixeles } = request.all(); // TODO: Agregar validator
+    const { grupo_pixeles, pixeles } = request.all();
     const userId = auth.user?.id;
-
-    if (userId === undefined) {
+    if (!userId) {
       await trx.rollback();
-      return response.status(400).json({ message: "User ID is not available" });
+      return response.status(401).json({ message: "User ID is not available" });
     }
+    const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
 
-    // Insertar grupo de píxeles
-    const grupo_pixel_insert_params = {
-      link_adjunta: grupo_pixeles.link,
-      coordenada_x_inicio: grupo_pixeles.coordenada_x_inicio,
-      coordenada_y_inicio: grupo_pixeles.coordenada_y_inicio,
-      coordenada_x_fin: grupo_pixeles.coordenada_x_fin,
-      coordenada_y_fin: grupo_pixeles.coordenada_y_fin,
-    };
+    // Buscar grupo por coordenadas y estado "en proceso compra" (id_estado = 1)
+    const grupoExistente = await trx
+      .from('grupos_pixeles')
+      .where('coordenada_x_inicio', grupo_pixeles.coordenada_x_inicio)
+      .andWhere('coordenada_x_fin', grupo_pixeles.coordenada_x_fin)
+      .andWhere('coordenada_y_inicio', grupo_pixeles.coordenada_y_inicio)
+      .andWhere('coordenada_y_fin', grupo_pixeles.coordenada_y_fin)
+      .andWhere('id_estado', 1)
+      .first();
 
-    const [{ id_grupo_pixeles }] = await trx
-      .table("grupos_pixeles")
-      .insert(grupo_pixel_insert_params)
-      .returning("id_grupo_pixeles");
+    let grupoId: number;
 
-    if (id_grupo_pixeles) {
-      const pixeles_individuales_insert_params = pixeles.map((pixel: any) => ({
+    if (grupoExistente) {
+      // El grupo existe, verificar si está expirado
+      const fechaExpiracionGrupo = DateTime.fromJSDate(new Date(grupoExistente.fecha_expiracion));
+      const estaExpirado = DateTime.local() > fechaExpiracionGrupo;
+
+      if (!estaExpirado) {
+        // Si el grupo existe y no está expirado, no se hace nada
+        await trx.commit();
+        params.notification.state = true;
+        params.notification.type = "info";
+        params.notification.message = "El grupo se encuentra activo, sin cambios.";
+        return response.json(params);
+      } else {
+        // Si el grupo existe y está expirado, se renueva la fecha y se actualizan los colores de los píxeles
+        grupoId = grupoExistente.id_grupo_pixeles;
+        // Renovar fecha de expiración
+        await trx
+          .from('grupos_pixeles')
+          .where('id_grupo_pixeles', grupoId)
+          .update({ fecha_expiracion: newExpiration });
+
+        await Promise.all(
+          pixeles.map(pixel => {
+            return trx
+              .from("pixeles_individuales")
+              .where({
+                id_grupo_pixeles: grupoId,
+                coordenada_x: pixel.coordenada_x,
+                coordenada_y: pixel.coordenada_y,
+              })
+              .update({ color: pixel.color });
+          })
+        );
+
+        params.notification.state = true;
+        params.notification.type = "success";
+        params.notification.message = "Grupo expirado actualizado correctamente.";
+      }
+    } else {
+      // El grupo no existe, se crea uno nuevo
+      const grupoInsert = {
+        link_adjunta: grupo_pixeles.link,
+        coordenada_x_inicio: grupo_pixeles.coordenada_x_inicio,
+        coordenada_y_inicio: grupo_pixeles.coordenada_y_inicio,
+        coordenada_x_fin: grupo_pixeles.coordenada_x_fin,
+        coordenada_y_fin: grupo_pixeles.coordenada_y_fin,
+        id_estado: 1,
+        fecha_expiracion: newExpiration,
+      };
+
+      const result = await trx
+        .table("grupos_pixeles")
+        .insert(grupoInsert)
+        .returning("id_grupo_pixeles");
+      grupoId = result[0].id_grupo_pixeles;
+
+      // Insertar de forma masiva los píxeles individuales del grupo
+      const pixelesData = pixeles.map((pixel: any) => ({
         coordenada_x: pixel.coordenada_x,
         coordenada_y: pixel.coordenada_y,
         color: pixel.color,
-        id_grupo_pixeles: id_grupo_pixeles,
+        id_grupo_pixeles: grupoId,
       }));
-      await trx.table("pixeles_individuales").insert(pixeles_individuales_insert_params);
+
+      await trx.table("pixeles_individuales").insert(pixelesData);
+
+      params.notification.state = true;
+      params.notification.type = "success";
+      params.notification.message = "Grupo registrado correctamente.";
     }
 
     // Insertar el pedido con fecha máxima de pago 7 minutos después del created_at
     const pedido_insert_params = {
-      id_grupo_pixeles,
+      id_grupo_pixeles: grupoId,
       id_usuario: userId,
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
@@ -141,9 +202,6 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     }
 
     await trx.commit();
-    params.notification.state = true;
-    params.notification.type = "success";
-    params.notification.message = "Grupo Registrado Correctamente";
     Ws.io.emit("nuevo_registro");
     return response.json(params);
   } catch (error) {

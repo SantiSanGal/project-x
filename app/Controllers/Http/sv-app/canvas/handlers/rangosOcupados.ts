@@ -33,11 +33,24 @@ export const rangosOcupados = async ({ request, response }: HttpContextContract)
     try {
         const idSector = request.param('idSector')
 
+        //trae los ocupados y que no se hayan expirado
         const data = await Database.connection('pg')
             .query()
+            .select('grupos_pixeles.*')
             .from('grupos_pixeles')
-            .where('coordenada_x_inicio', '>=', consultar[idSector].x[0]).where('coordenada_x_fin', '<=', consultar[idSector].x[1])
-            .andWhere('coordenada_y_inicio', '>=', consultar[idSector].y[0]).where('coordenada_y_fin', '<=', consultar[idSector].y[1]);
+            .join('estados', 'grupos_pixeles.id_estado', '=', 'estados.estado_id')
+            .where('coordenada_x_inicio', '>=', consultar[idSector].x[0])
+            .andWhere('coordenada_x_fin', '<=', consultar[idSector].x[1])
+            .andWhere('coordenada_y_inicio', '>=', consultar[idSector].y[0])
+            .andWhere('coordenada_y_fin', '<=', consultar[idSector].y[1])
+            .andWhere((query) => {
+                query.whereIn('estados.nombre_estado', ['pintado', 'pagado'])
+                    .orWhere((qb) => {
+                        qb.where('estados.nombre_estado', 'en proceso compra')
+                            .andWhere('grupos_pixeles.fecha_expiracion', '>', Database.raw('CURRENT_TIMESTAMP'));
+                    });
+            });
+
 
         params.data = data
         params.notification.state = true
