@@ -191,6 +191,9 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
       pagoparResponse.data.resultado[0]
     ) {
       const dataToken = pagoparResponse.data.resultado[0].data;
+      params.data = {
+        dataToken
+      }
 
       await trx
         .from("pedidos")
@@ -202,6 +205,7 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     }
 
     await trx.commit();
+    //para que en el canvas bloquee ocupado
     Ws.io.emit("nuevo_registro");
     return response.json(params);
   } catch (error) {
