@@ -7,6 +7,9 @@ import crypto from 'crypto';
 import axios from 'axios';
 
 //TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
+//TODO: Registrar currency en la tabla pedidos
+//TODO: registrar nro de comprobante interno de pagopar
+
 export const store = async ({ request, response, auth }: HttpContextContract) => {
   let params = {
     data: {},
@@ -115,6 +118,9 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: userId,
+      monto: 1000, //TODO: monto usd 25
+      moneda: 1, //1 gs, 2 usd,
+      pagado: false,
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
       fecha_maxima_pago: DateTime.local().plus({ minutes: 7 }).toISO(),
@@ -191,6 +197,8 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
       pagoparResponse.data.resultado[0]
     ) {
       const dataToken = pagoparResponse.data.resultado[0].data;
+      //número de referencia de pagopar
+      const pagopar_pedido_transaccion = pagoparResponse.data.resultado[0].pedido;
       params.data = {
         dataToken
       }
@@ -198,7 +206,11 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
       await trx
         .from("pedidos")
         .where("id_pedido", id_pedido)
-        .update({ data_token: dataToken });
+        .update({ data_token: dataToken, pagopar_pedido_transaccion: pagopar_pedido_transaccion, token_generado: tokenForPagopar });
+
+      console.log('store pagoparResponse', pagoparResponse);
+      console.log('store id_pedido', id_pedido);
+
 
     } else {
       throw new Error("Error al generar pedido en Pagopar");

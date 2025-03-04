@@ -19,7 +19,7 @@ export const confirmarPago = async ({ request, response }: HttpContextContract) 
     console.log('resultado', resultado);
     console.log('respuesta', respuesta);
 
-    const { 
+    const {
       pagado, // viene booleano
       numero_comprobante_interno,
       ultimo_mensaje_error,
