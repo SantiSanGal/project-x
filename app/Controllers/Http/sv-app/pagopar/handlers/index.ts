@@ -1,2 +1,1 @@
-export * from './generarPedido'
-export * from './confirmarPago'
+export * from "./confirmarPago";

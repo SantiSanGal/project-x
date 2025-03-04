@@ -1,16 +1,19 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
-import Env from '@ioc:Adonis/Core/Env';
+import Env from "@ioc:Adonis/Core/Env";
 import Ws from "App/Services/Ws";
 import { DateTime } from "luxon";
-import crypto from 'crypto';
-import axios from 'axios';
+import crypto from "crypto";
+import axios from "axios";
 
 //TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
-//TODO: Registrar currency en la tabla pedidos
-//TODO: registrar nro de comprobante interno de pagopar
+// TODO: Antes de hacer el pedido => Consultar tipo de cambio y pedir lo equivalente
 
-export const store = async ({ request, response, auth }: HttpContextContract) => {
+export const store = async ({
+  request,
+  response,
+  auth,
+}: HttpContextContract) => {
   let params = {
     data: {},
     notification: {
@@ -33,19 +36,21 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
 
     // Buscar grupo por coordenadas y estado "en proceso compra" (id_estado = 1)
     const grupoExistente = await trx
-      .from('grupos_pixeles')
-      .where('coordenada_x_inicio', grupo_pixeles.coordenada_x_inicio)
-      .andWhere('coordenada_x_fin', grupo_pixeles.coordenada_x_fin)
-      .andWhere('coordenada_y_inicio', grupo_pixeles.coordenada_y_inicio)
-      .andWhere('coordenada_y_fin', grupo_pixeles.coordenada_y_fin)
-      .andWhere('id_estado', 1)
+      .from("grupos_pixeles")
+      .where("coordenada_x_inicio", grupo_pixeles.coordenada_x_inicio)
+      .andWhere("coordenada_x_fin", grupo_pixeles.coordenada_x_fin)
+      .andWhere("coordenada_y_inicio", grupo_pixeles.coordenada_y_inicio)
+      .andWhere("coordenada_y_fin", grupo_pixeles.coordenada_y_fin)
+      .andWhere("id_estado", 1)
       .first();
 
     let grupoId: number;
 
     if (grupoExistente) {
       // El grupo existe, verificar si está expirado
-      const fechaExpiracionGrupo = DateTime.fromJSDate(new Date(grupoExistente.fecha_expiracion));
+      const fechaExpiracionGrupo = DateTime.fromJSDate(
+        new Date(grupoExistente.fecha_expiracion)
+      );
       const estaExpirado = DateTime.local() > fechaExpiracionGrupo;
 
       if (!estaExpirado) {
@@ -53,19 +58,20 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
         await trx.commit();
         params.notification.state = true;
         params.notification.type = "info";
-        params.notification.message = "El grupo se encuentra activo, sin cambios.";
+        params.notification.message =
+          "El grupo se encuentra activo, sin cambios.";
         return response.json(params);
       } else {
         // Si el grupo existe y está expirado, se renueva la fecha y se actualizan los colores de los píxeles
         grupoId = grupoExistente.id_grupo_pixeles;
         // Renovar fecha de expiración
         await trx
-          .from('grupos_pixeles')
-          .where('id_grupo_pixeles', grupoId)
+          .from("grupos_pixeles")
+          .where("id_grupo_pixeles", grupoId)
           .update({ fecha_expiracion: newExpiration });
 
         await Promise.all(
-          pixeles.map(pixel => {
+          pixeles.map((pixel) => {
             return trx
               .from("pixeles_individuales")
               .where({
@@ -79,7 +85,8 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
 
         params.notification.state = true;
         params.notification.type = "success";
-        params.notification.message = "Grupo expirado actualizado correctamente.";
+        params.notification.message =
+          "Grupo expirado actualizado correctamente.";
       }
     } else {
       // El grupo no existe, se crea uno nuevo
@@ -118,7 +125,7 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: userId,
-      monto: 1000, //TODO: monto usd 25
+      monto: 1000, // o monto usd 25
       moneda: 1, //1 gs, 2 usd,
       pagado: false,
       created_at: DateTime.local().toISO(),
@@ -130,8 +137,6 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
       .table("pedidos")
       .insert(pedido_insert_params)
       .returning("id_pedido");
-
-    console.log('id_pedido', id_pedido);
 
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     const montoTotal = "1000";
@@ -173,23 +178,22 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
           vendedor_telefono: "",
           vendedor_direccion: "",
           vendedor_direccion_referencia: "",
-          vendedor_direccion_coordenadas: ""
-        }
+          vendedor_direccion_coordenadas: "",
+        },
       ],
-      fecha_maxima_pago: DateTime.local().plus({ minutes: 7 }).toISO(),
+      fecha_maxima_pago: DateTime.local()
+        .plus({ minutes: 7 })
+        .toFormat("yyyy-MM-dd HH:mm:ss"),
       id_pedido_comercio: id_pedido.toString(),
       descripcion_resumen: "",
-      forma_pago: 9
+      forma_pago: 9,
     };
 
     const pagoparResponse = await axios.post(
-      'https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion',
+      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion",
       pagoparPayload,
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { "Content-Type": "application/json" } }
     );
-
-    console.log('pagoparResponse', pagoparResponse.data);
-
 
     if (
       pagoparResponse.data.respuesta &&
@@ -198,20 +202,17 @@ export const store = async ({ request, response, auth }: HttpContextContract) =>
     ) {
       const dataToken = pagoparResponse.data.resultado[0].data;
       //número de referencia de pagopar
-      const pagopar_pedido_transaccion = pagoparResponse.data.resultado[0].pedido;
+      const pagopar_pedido_transaccion =
+        pagoparResponse.data.resultado[0].pedido;
       params.data = {
-        dataToken
-      }
+        dataToken,
+      };
 
-      await trx
-        .from("pedidos")
-        .where("id_pedido", id_pedido)
-        .update({ data_token: dataToken, pagopar_pedido_transaccion: pagopar_pedido_transaccion, token_generado: tokenForPagopar });
-
-      console.log('store pagoparResponse', pagoparResponse);
-      console.log('store id_pedido', id_pedido);
-
-
+      await trx.from("pedidos").where("id_pedido", id_pedido).update({
+        data_token: dataToken,
+        pagopar_pedido_transaccion: pagopar_pedido_transaccion,
+        token_generado: tokenForPagopar,
+      });
     } else {
       throw new Error("Error al generar pedido en Pagopar");
     }
