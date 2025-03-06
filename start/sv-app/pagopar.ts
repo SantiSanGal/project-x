@@ -5,3 +5,7 @@ Route.get(
   "/redireccionamiento/:hash",
   "sv-app/pagopar/controller.redireccionamiento"
 );
+Route.get(
+  "/consultarEstadoPago/:hashPedido",
+  "sv-app/pagopar/controller.consultarEstadoPago"
+);

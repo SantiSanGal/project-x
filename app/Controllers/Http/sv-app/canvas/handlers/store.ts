@@ -158,7 +158,7 @@ export const store = async ({
         documento: "1234567",
         razon_social: "",
       },
-      public_key: "323c4bc9bde903c140d1ea39d5d2047e",
+      public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
       monto_total: "1",
       moneda: "USD",
       comision_transladada_comprador: true,

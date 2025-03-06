@@ -1,3 +1,4 @@
+import { consultarEstadoPago } from "./handlers/ConsultarEstadoPago";
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import { confirmarPago } from "./handlers";
 
@@ -17,5 +18,9 @@ export default class Controller {
 
     // Redirige al frontend, pasando el hash como parámetro de query (opcional)
     return response.redirect(`http://localhost:3000/redirect/${hash}`);
+  }
+
+  public async consultarEstadoPago(params: HttpContextContract) {
+    return consultarEstadoPago(params);
   }
 }
