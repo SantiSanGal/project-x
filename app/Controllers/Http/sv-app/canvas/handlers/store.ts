@@ -139,61 +139,53 @@ export const store = async ({
       .returning("id_pedido");
 
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
-    const montoTotal = "1000";
+    const montoTotal = "1";
+
+    console.log("parseInt(montoTotal, 10)", parseInt(montoTotal, 10));
+
     const tokenForPagopar = crypto
       .createHash("sha1")
       .update(privateToken + id_pedido.toString() + montoTotal)
       .digest("hex");
 
-    // Construir el payload para enviar a la API de Pagopar
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
         ruc: "",
-        email: "santiago.patiasoc@gmail.com",
-        ciudad: null,
-        nombre: "",
-        telefono: "",
-        direccion: "",
-        documento: "12345678",
-        coordenadas: "",
+        email: "juanperez@gmail.com",
+        nombre: "Juan Perez",
+        telefono: "+595972200055",
+        documento: "1234567",
         razon_social: "",
-        tipo_documento: "CI",
-        direccion_referencia: null,
       },
-      public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
-      monto_total: parseInt(montoTotal, 10),
-      tipo_pedido: "VENTA-COMERCIO",
+      public_key: "323c4bc9bde903c140d1ea39d5d2047e",
+      monto_total: "1",
+      moneda: "USD",
+      comision_transladada_comprador: true,
       compras_items: [
         {
-          ciudad: "1",
-          nombre: "Test 1",
+          nombre: "Cuota 1/10",
           cantidad: 1,
-          categoria: "909",
-          public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
-          url_imagen: "",
-          descripcion: "Test 1",
-          id_producto: 1,
-          precio_total: parseInt(montoTotal, 10),
-          vendedor_telefono: "",
-          vendedor_direccion: "",
-          vendedor_direccion_referencia: "",
-          vendedor_direccion_coordenadas: "",
+          url_imagen:
+            "https://grupocyc.pe/11674-large_default/cable-de-poder-generico-negro.jpg",
+          descripcion: "descripcion del producto",
+          id_producto: "1",
+          precio_total: "1",
         },
       ],
-      fecha_maxima_pago: DateTime.local()
-        .plus({ minutes: 7 })
-        .toFormat("yyyy-MM-dd HH:mm:ss"),
       id_pedido_comercio: id_pedido.toString(),
-      descripcion_resumen: "",
+      descripcion_resumen: "resumen del producto",
       forma_pago: 9,
     };
 
     const pagoparResponse = await axios.post(
-      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion",
+      // "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion",
+      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
     );
+
+    console.log("pagoparResponse", pagoparResponse);
 
     if (
       pagoparResponse.data.respuesta &&
