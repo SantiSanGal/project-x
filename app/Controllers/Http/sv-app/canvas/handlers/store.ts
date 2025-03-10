@@ -7,7 +7,6 @@ import crypto from "crypto";
 import axios from "axios";
 
 //TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
-// TODO: Antes de hacer el pedido => Consultar tipo de cambio y pedir lo equivalente
 
 export const store = async ({
   request,
@@ -141,8 +140,6 @@ export const store = async ({
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     const montoTotal = "1";
 
-    console.log("parseInt(montoTotal, 10)", parseInt(montoTotal, 10));
-
     const tokenForPagopar = crypto
       .createHash("sha1")
       .update(privateToken + id_pedido.toString() + montoTotal)
@@ -185,7 +182,9 @@ export const store = async ({
       { headers: { "Content-Type": "application/json" } }
     );
 
-    console.log("pagoparResponse", pagoparResponse);
+    console.log('=============================');
+    console.log('pagopar', pagoparResponse.data)
+    console.log('=============================');
 
     if (
       pagoparResponse.data.respuesta &&
@@ -212,6 +211,9 @@ export const store = async ({
     await trx.commit();
     //para que en el canvas bloquee ocupado
     Ws.io.emit("nuevo_registro");
+    params.notification.state = true
+    params.notification.type = 'success'
+    params.notification.message = 'Pedido Registrado con exito'
     return response.json(params);
   } catch (error) {
     console.log("error", error);
