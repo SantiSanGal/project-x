@@ -12,9 +12,6 @@ export const confirmarPago = async ({
   request,
   response,
 }: HttpContextContract) => {
-  console.log('=============================');
-  console.log("confirmarPago handler");
-
   const { resultado, respuesta } = await request.all();
   console.log("resultado", resultado);
   try {
@@ -28,7 +25,6 @@ export const confirmarPago = async ({
         forma_pago,
         fecha_pago,
         monto,
-        fecha_maxima_pago,
         hash_pedido,
         numero_pedido,
         cancelado,
@@ -42,16 +38,7 @@ export const confirmarPago = async ({
       .update(privateToken + hash_pedido)
       .digest("hex");
 
-    console.log('hashToCompare', hashToCompare);
-    console.log('token', token);
-
     if (hashToCompare === token) {
-      console.log('los hashes son iguales');
-      console.log('ultimo_mensaje_error', ultimo_mensaje_error);
-      console.log('monto', monto);
-      console.log('fecha_maxima_pago', fecha_maxima_pago);
-      console.log('cancelado', cancelado);
-
       let pedido_update_params = {
         pagado: pagado,
         numero_comprobante_interno_pagopar: numero_comprobante_interno,
@@ -61,45 +48,31 @@ export const confirmarPago = async ({
         updated_at: DateTime.local().toISO(),
       };
 
-      await Database.connection("pg")
+      const updatedPedido = await Database.connection("pg")
         .from("pedidos")
         .where("pagopar_pedido_transaccion", numero_pedido)
         .andWhere("data_token", hash_pedido)
-        .update(pedido_update_params);
+        .update(pedido_update_params)
+        .returning("id_grupo_pixeles");
 
+      if (updatedPedido.length > 0 && updatedPedido[0].id_grupo_pixeles) {
+        const idGrupoPixeles = updatedPedido[0].id_grupo_pixeles;
+        await Database.connection("pg")
+          .from("grupos_pixeles")
+          .where("id_grupo_pixeles", idGrupoPixeles)
+          .update({ id_estado: 2 });
+      }
     } else {
       return response.status(200).json(resultado);
     }
 
-    // const tokenForPagopar = crypto
-    //   .createHash("sha1")
-    //   .update(privateToken + "CONSULTA")
-    //   .digest("hex");
-
-    // const consultar_estado_pago_params = {
-    //   hash_pedido: hash_pedido,
-    //   token: tokenForPagopar,
-    //   token_publico: Env.get("PAGOPAR_TOKEN_PUBLICO"),
-    // };
-
-    // console.log('consultar_estado_pago_params', consultar_estado_pago_params)
-
-    // const respuestaConsultaPagopar = await axios.post(
-    //   "https://api.pagopar.com/api/pedidos/1.1/traer",
-    //   consultar_estado_pago_params
-    // );
-
-    // console.log("respuestaConsultaPagopar", respuestaConsultaPagopar.data);
-    // params.data = respuestaConsultaPagopar.data;
-    // return response.status(200).json(params);
-
-    console.log('=============================');
+    console.log("=============================");
     return response.status(200).json(resultado);
   } catch (e) {
-    console.log('*****************************');
+    console.log("*****************************");
     console.log("e", e);
-    console.log('catch respuesta', respuesta);
-    console.log('*****************************');
+    console.log("catch respuesta", respuesta);
+    console.log("*****************************");
     return response.status(200).json(resultado);
   }
 };
