@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { edit, list, rangosOcupados, store } from './handlers';
+import { getImgGrupoPixeles } from './handlers/getImgGrupoPixeles';
 
 export default class Controller {
     public async list(params: HttpContextContract) {
@@ -16,5 +17,9 @@ export default class Controller {
 
     public async rangosOcupados(params: HttpContextContract) {
         return rangosOcupados(params)
+    }
+
+    public async getImgGrupoPixeles(params: HttpContextContract) {
+        return getImgGrupoPixeles(params)
     }
 }

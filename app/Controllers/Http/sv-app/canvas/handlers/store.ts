@@ -1,10 +1,13 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
 import Env from "@ioc:Adonis/Core/Env";
+import { createCanvas } from "canvas";
 import Ws from "App/Services/Ws";
 import { DateTime } from "luxon";
 import crypto from "crypto";
 import axios from "axios";
+import path from "path";
+import fs from "fs";
 
 //TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
 
@@ -113,6 +116,8 @@ export const store = async ({
         id_grupo_pixeles: grupoId,
       }));
 
+      console.log('pixelesData', pixelesData);
+
       await trx.table("pixeles_individuales").insert(pixelesData);
 
       params.notification.state = true;
@@ -125,7 +130,7 @@ export const store = async ({
       id_grupo_pixeles: grupoId,
       id_usuario: userId,
       monto: 1000, // o monto usd 25
-      moneda: 1, //1 gs, 2 usd,
+      // moneda: 1, //1 gs, 2 usd,
       pagado: false,
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
@@ -136,6 +141,48 @@ export const store = async ({
       .table("pedidos")
       .insert(pedido_insert_params)
       .returning("id_pedido");
+
+    // GENERAR IMAGEN A PARTIR DE LOS PÍXELES
+    // 1. Calcular el área del dibujo (normalizando coordenadas)
+    const minX = Math.min(...pixeles.map((p: any) => p.coordenada_x));
+    const minY = Math.min(...pixeles.map((p: any) => p.coordenada_y));
+    const maxX = Math.max(...pixeles.map((p: any) => p.coordenada_x));
+    const maxY = Math.max(...pixeles.map((p: any) => p.coordenada_y));
+    const width = maxX - minX + 1;
+    const height = maxY - minY + 1;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext("2d");
+    // Se pinta cada píxel ajustando la posición
+    pixeles.forEach((pixel: any) => {
+      const x = pixel.coordenada_x - minX;
+      const y = pixel.coordenada_y - minY;
+      // Validar color con expresión regular (opcional)
+      if (!/^#[0-9A-F]{6}$/i.test(pixel.color)) {
+        console.error(`Color inválido: ${pixel.color}`);
+        return;
+      }
+      ctx.fillStyle = pixel.color;
+      ctx.fillRect(x, y, 1, 1);
+    });
+    // 2. Generar un hash para el nombre de la imagen
+    const hash = crypto
+      .createHash("sha1")
+      .update(DateTime.local().toISO() + grupoId)
+      .digest("hex");
+    const fileName = `${grupoId}_${hash}.png`;
+    // 3. Guardar la imagen en public/individuales
+    const individualesDir = path.join(
+      __dirname,
+      "./../../../../../../",
+      "public",
+      "individuales"
+    );
+    if (!fs.existsSync(individualesDir)) {
+      fs.mkdirSync(individualesDir, { recursive: true });
+    }
+    const imagePath = path.join(individualesDir, fileName);
+    const buffer = canvas.toBuffer("image/png");
+    fs.writeFileSync(imagePath, buffer);
 
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     const montoTotal = "1";
@@ -157,14 +204,14 @@ export const store = async ({
       },
       public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
       monto_total: "1",
-      moneda: "USD",
+      // moneda: "USD",
       comision_transladada_comprador: true,
       compras_items: [
         {
           nombre: "Cuota 1/10",
           cantidad: 1,
           url_imagen:
-            "https://grupocyc.pe/11674-large_default/cable-de-poder-generico-negro.jpg",
+            `https://miurl/individuales/${fileName}`,
           descripcion: "descripcion del producto",
           id_producto: "1",
           precio_total: "1",
@@ -205,6 +252,7 @@ export const store = async ({
         token_generado: tokenForPagopar,
       });
     } else {
+      await trx.rollback();
       throw new Error("Error al generar pedido en Pagopar");
     }
 

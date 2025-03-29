@@ -9,3 +9,5 @@ Route.group(() => {
 })
     .prefix('canvas')
     .middleware('auth')
+
+Route.get('/grupoPixeles/:id', 'sv-app/canvas/controller.getImgGrupoPixeles').prefix('canvas')
