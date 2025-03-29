@@ -3,7 +3,6 @@ import Database from "@ioc:Adonis/Lucid/Database";
 import Env from "@ioc:Adonis/Core/Env";
 import { DateTime } from "luxon";
 import crypto from "crypto";
-// import axios from "axios";
 
 //acá notifica si el pago es reversado o no
 //todo: actualizar estados de tablas

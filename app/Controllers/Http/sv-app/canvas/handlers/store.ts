@@ -29,11 +29,19 @@ export const store = async ({
 
   try {
     const { grupo_pixeles, pixeles } = request.all();
-    const userId = auth.user?.id;
-    if (!userId) {
+    const { user } = auth
+
+    if (!user) {
       await trx.rollback();
       return response.status(401).json({ message: "User ID is not available" });
     }
+
+    if (!user.id) {
+      await trx.rollback();
+      return response.status(401).json({ message: "User ID is not available" });
+    }
+
+
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
 
     // Buscar grupo por coordenadas y estado "en proceso compra" (id_estado = 1)
@@ -116,10 +124,7 @@ export const store = async ({
         id_grupo_pixeles: grupoId,
       }));
 
-      console.log('pixelesData', pixelesData);
-
       await trx.table("pixeles_individuales").insert(pixelesData);
-
       params.notification.state = true;
       params.notification.type = "success";
       params.notification.message = "Grupo registrado correctamente.";
@@ -128,7 +133,7 @@ export const store = async ({
     // Insertar el pedido con fecha máxima de pago 7 minutos después del created_at
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
-      id_usuario: userId,
+      id_usuario: user.id,
       monto: 1000, // o monto usd 25
       // moneda: 1, //1 gs, 2 usd,
       pagado: false,
@@ -185,36 +190,37 @@ export const store = async ({
     fs.writeFileSync(imagePath, buffer);
 
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
-    const montoTotal = "1";
+    const montoTotal = "25";
 
     const tokenForPagopar = crypto
       .createHash("sha1")
       .update(privateToken + id_pedido.toString() + montoTotal)
       .digest("hex");
 
+    const [justName] = fileName.split('.')
+
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
-        ruc: "",
-        email: "juanperez@gmail.com",
-        nombre: "Juan Perez",
-        telefono: "+595972200055",
-        documento: "1234567",
+        ruc: user.document ? user.document : '0000000',
+        email: user.email,
+        nombre: user.name,
+        telefono: "",
+        documento: user.document ? user.document : '0000000',
         razon_social: "",
       },
       public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
-      monto_total: "1",
-      // moneda: "USD",
-      comision_transladada_comprador: true,
+      monto_total: montoTotal,
+      comision_transladada_comprador: false,
       compras_items: [
         {
-          nombre: "Cuota 1/10",
+          nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
           url_imagen:
-            `https://miurl/individuales/${fileName}`,
-          descripcion: "descripcion del producto",
+            `${Env.get('URL_BACK')}/canvas/grupoPixeles/${justName}`,
+          descripcion: "",
           id_producto: "1",
-          precio_total: "1",
+          precio_total: montoTotal,
         },
       ],
       id_pedido_comercio: id_pedido.toString(),
@@ -223,15 +229,10 @@ export const store = async ({
     };
 
     const pagoparResponse = await axios.post(
-      // "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion",
       "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
     );
-
-    console.log('=============================');
-    console.log('pagopar', pagoparResponse.data)
-    console.log('=============================');
 
     if (
       pagoparResponse.data.respuesta &&
