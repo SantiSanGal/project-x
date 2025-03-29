@@ -2,9 +2,10 @@ import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
 import Env from "@ioc:Adonis/Core/Env";
 import { DateTime } from "luxon";
+import Ws from "App/Services/Ws";
 import crypto from "crypto";
 
-//acá notifica si el pago es reversado o no
+//Acá notifica si el pago es reversado o no
 //todo: actualizar estados de tablas
 //todo: actualizar pedido a pagado
 export const confirmarPago = async ({
@@ -12,7 +13,6 @@ export const confirmarPago = async ({
   response,
 }: HttpContextContract) => {
   const { resultado, respuesta } = await request.all();
-  console.log("resultado", resultado);
   try {
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
 
@@ -31,6 +31,10 @@ export const confirmarPago = async ({
         token,
       },
     ] = resultado;
+
+    console.log('ultimo_mensaje_error', ultimo_mensaje_error);
+    console.log('monto', monto);
+    console.log('cancelado', cancelado);
 
     const hashToCompare = crypto
       .createHash("sha1")
@@ -54,18 +58,28 @@ export const confirmarPago = async ({
         .update(pedido_update_params)
         .returning("id_grupo_pixeles");
 
+      console.log('updatedPedido', updatedPedido);
+
       if (updatedPedido.length > 0 && updatedPedido[0].id_grupo_pixeles) {
-        const idGrupoPixeles = updatedPedido[0].id_grupo_pixeles;
-        await Database.connection("pg")
+        const grupos_pixeles = await Database.connection("pg")
           .from("grupos_pixeles")
-          .where("id_grupo_pixeles", idGrupoPixeles)
+          .where("id_grupo_pixeles", updatedPedido[0].id_grupo_pixeles)
           .update({ id_estado: 2 });
+
+        console.log('grupos_pixeles', grupos_pixeles);
+
+        const pixeles_individuales = await Database.connection('pg')
+          .from('pixeles_individuales')
+          .where('id_grupo_pixeles', updatedPedido[0].id_grupo_pixeles)
+
+        console.log('pixeles_individuales', pixeles_individuales);
+
+        if (pagado) {
+          Ws.io.emit('pintar', pixeles_individuales)
+        }
       }
-    } else {
-      return response.status(200).json(resultado);
     }
 
-    console.log("=============================");
     return response.status(200).json(resultado);
   } catch (e) {
     console.log("*****************************");

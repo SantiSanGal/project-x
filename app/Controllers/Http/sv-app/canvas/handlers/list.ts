@@ -1,7 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 
-//Get de los pixeles sin pintar
+//Get de los pixeles PAGADOS sin pintar
 export const list = async ({ response }: HttpContextContract) => {
     let params = {
         data: {},
@@ -13,11 +13,13 @@ export const list = async ({ response }: HttpContextContract) => {
     }
 
     try {
+        // TODO: consultar su estado desde el grupo_pixeles
         const data = await Database.connection('pg')
             .query()
+            .select('pixeles_individuales.*')
             .from('pixeles_individuales')
-            .where('pintado', '!=', true)
-            .orWhereNull('pintado');
+            .innerJoin('grupos_pixeles', 'pixeles_individuales.id_grupo_pixeles', 'grupos_pixeles.id_grupo_pixeles')
+            .where('grupos_pixeles.id_estado', 2)
 
         params.data = data
         params.notification.state = true

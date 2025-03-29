@@ -10,6 +10,7 @@ import path from "path";
 import fs from "fs";
 
 //TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
+const montoTotal = "1";
 
 export const store = async ({
   request,
@@ -134,8 +135,7 @@ export const store = async ({
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: user.id,
-      monto: 1000, // o monto usd 25
-      // moneda: 1, //1 gs, 2 usd,
+      monto: montoTotal,
       pagado: false,
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
@@ -190,7 +190,6 @@ export const store = async ({
     fs.writeFileSync(imagePath, buffer);
 
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
-    const montoTotal = "25";
 
     const tokenForPagopar = crypto
       .createHash("sha1")
