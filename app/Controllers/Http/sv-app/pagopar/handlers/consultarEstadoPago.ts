@@ -85,7 +85,7 @@ export const consultarEstadoPago = async ({
           .returning("id_grupo_pixeles");
 
         if (updatedPedido.length > 0 && updatedPedido[0].id_grupo_pixeles) {
-          const grupos_pixeles = await Database.connection("pg")
+          await Database.connection("pg")
             .from("grupos_pixeles")
             .where("id_grupo_pixeles", updatedPedido[0].id_grupo_pixeles)
             .update({ id_estado: 2 });
