@@ -13,7 +13,7 @@ export const register = async ({ request, response }: HttpContextContract) => {
     },
   };
   try {
-    const { username, password, name, last_name, email } =
+    const { username, password, name, last_name, email, document, type_document } =
       await request.validate(resgisterValidator);
 
     let insertParams = {
@@ -21,6 +21,8 @@ export const register = async ({ request, response }: HttpContextContract) => {
       name,
       last_name,
       email,
+      document,
+      type_document,
       password: await Hash.make(password),
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
