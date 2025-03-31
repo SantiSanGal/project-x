@@ -9,7 +9,6 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-//TODO: Una vez que se confirme el pago, actualizar el estado de los grupos pixeles a pagado
 const montoTotal = "1";
 
 export const store = async ({
@@ -29,8 +28,8 @@ export const store = async ({
   const trx = await Database.transaction();
 
   try {
-    const { grupo_pixeles, pixeles } = request.all();
-    const { user } = auth
+    const { grupo_pixeles, pixeles, refer_code } = request.all();
+    const { user } = auth;
 
     if (!user) {
       await trx.rollback();
@@ -41,7 +40,6 @@ export const store = async ({
       await trx.rollback();
       return response.status(401).json({ message: "User ID is not available" });
     }
-
 
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
 
@@ -94,6 +92,13 @@ export const store = async ({
           })
         );
 
+        //TODO: Buscar en la tabla puntos todo lo que haga referencia al ID del grupo pixeles expirado y BORRAR
+        // TODO: Y Agregar sólo el punto del nuevo grupo y el referido si es que corresponde
+        /**
+         * para no borrar, se pueden buscar los registros que tengan esa tabla con referidos y actualizar al nuevo id del referido
+         * y si no tiene referidos, borrar los registros
+         */
+
         params.notification.state = true;
         params.notification.type = "success";
         params.notification.message =
@@ -124,6 +129,9 @@ export const store = async ({
         color: pixel.color,
         id_grupo_pixeles: grupoId,
       }));
+
+      // TODO: Hacer insert de punto del grupo de pixeles
+      // TODO: Hacer insert de punto del grupo de pixeles con referido, si es que corresponde
 
       await trx.table("pixeles_individuales").insert(pixelesData);
       params.notification.state = true;
@@ -196,16 +204,16 @@ export const store = async ({
       .update(privateToken + id_pedido.toString() + montoTotal)
       .digest("hex");
 
-    const [justName] = fileName.split('.')
+    const [justName] = fileName.split(".");
 
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
-        ruc: user.document ? user.document : '0000000',
+        ruc: user.document ? user.document : "0000000",
         email: user.email,
         nombre: user.name,
         telefono: "",
-        documento: user.document ? user.document : '0000000',
+        documento: user.document ? user.document : "0000000",
         razon_social: "",
       },
       public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
@@ -215,10 +223,9 @@ export const store = async ({
         {
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
-          url_imagen:
-            `${Env.get('URL_BACK')}/canvas/grupoPixeles/${justName}`,
+          url_imagen: `${Env.get("URL_BACK")}/canvas/grupoPixeles/${justName}`,
           descripcion: "",
-          id_producto: "1",
+          id_producto: grupoId,
           precio_total: montoTotal,
         },
       ],
@@ -244,6 +251,7 @@ export const store = async ({
         pagoparResponse.data.resultado[0].pedido;
       params.data = {
         dataToken,
+        code_for_refer: `TP-${grupoId}`,
       };
 
       await trx.from("pedidos").where("id_pedido", id_pedido).update({
@@ -259,9 +267,9 @@ export const store = async ({
     await trx.commit();
     //para que en el canvas bloquee ocupado
     Ws.io.emit("nuevo_registro");
-    params.notification.state = true
-    params.notification.type = 'success'
-    params.notification.message = 'Pedido Registrado con exito'
+    params.notification.state = true;
+    params.notification.type = "success";
+    params.notification.message = "Pedido Registrado con éxito";
     return response.json(params);
   } catch (error) {
     await trx.rollback();
