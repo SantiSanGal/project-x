@@ -16,8 +16,6 @@ export default class GenerarImagen extends BaseTask {
 
   public async handle() {
     const now = DateTime.now()
-    console.log(now.toFormat('yyyy-MM-dd HH:mm:ss'));
-
     const data = await Database.connection('pg')
       .query()
       .select('pixeles_individuales.*')
@@ -74,7 +72,5 @@ export default class GenerarImagen extends BaseTask {
       .from('pixeles_individuales')
       .whereIn('id_pixel_individual', pixelesIds)
       .update({ pintado: true });
-
-    console.log('Pixeles actualizados:', pixelesIds);
   }
 }

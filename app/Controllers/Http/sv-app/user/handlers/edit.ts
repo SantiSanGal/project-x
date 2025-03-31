@@ -21,10 +21,6 @@ export const update = async ({ request, response, auth }: HttpContextContract) =
         }
 
         const { username, name, last_name, email, country, city } = await request.validate(userEditValidator)
-        console.log(username, name, last_name, email, country, city);
-
-        console.log('country', country);
-        console.log('city', city);
 
         let update_user_params = {
             username, name, last_name, email

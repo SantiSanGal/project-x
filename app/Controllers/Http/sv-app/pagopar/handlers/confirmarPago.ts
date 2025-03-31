@@ -6,8 +6,6 @@ import Ws from "App/Services/Ws";
 import crypto from "crypto";
 
 //Acá notifica si el pago es reversado o no
-//todo: actualizar estados de tablas
-//todo: actualizar pedido a pagado
 export const confirmarPago = async ({
   request,
   response,
@@ -32,10 +30,6 @@ export const confirmarPago = async ({
       },
     ] = resultado;
 
-    console.log('ultimo_mensaje_error', ultimo_mensaje_error);
-    console.log('monto', monto);
-    console.log('cancelado', cancelado);
-
     const hashToCompare = crypto
       .createHash("sha1")
       .update(privateToken + hash_pedido)
@@ -49,6 +43,7 @@ export const confirmarPago = async ({
         fecha_pago: fecha_pago,
         forma_pago_identificador: forma_pago_identificador,
         updated_at: DateTime.local().toISO(),
+        cancelado: cancelado
       };
 
       const updatedPedido = await Database.connection("pg")
@@ -58,21 +53,15 @@ export const confirmarPago = async ({
         .update(pedido_update_params)
         .returning("id_grupo_pixeles");
 
-      console.log('updatedPedido', updatedPedido);
-
       if (updatedPedido.length > 0 && updatedPedido[0].id_grupo_pixeles) {
         const grupos_pixeles = await Database.connection("pg")
           .from("grupos_pixeles")
           .where("id_grupo_pixeles", updatedPedido[0].id_grupo_pixeles)
           .update({ id_estado: 2 });
 
-        console.log('grupos_pixeles', grupos_pixeles);
-
         const pixeles_individuales = await Database.connection('pg')
           .from('pixeles_individuales')
           .where('id_grupo_pixeles', updatedPedido[0].id_grupo_pixeles)
-
-        console.log('pixeles_individuales', pixeles_individuales);
 
         if (pagado) {
           Ws.io.emit('pintar', pixeles_individuales)

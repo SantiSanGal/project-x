@@ -264,7 +264,6 @@ export const store = async ({
     params.notification.message = 'Pedido Registrado con exito'
     return response.json(params);
   } catch (error) {
-    console.log("error", error);
     await trx.rollback();
     return response.status(500).json(params);
   }

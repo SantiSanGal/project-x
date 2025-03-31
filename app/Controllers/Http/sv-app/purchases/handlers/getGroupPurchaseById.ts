@@ -10,7 +10,7 @@ export const getGroupPurchaseById = async ({ response, auth }: HttpContextContra
             message: 'Error en el Servidor'
         }
     }
-    
+
     try {
         const data = await Database.connection('pg')
             .query()
@@ -23,8 +23,6 @@ export const getGroupPurchaseById = async ({ response, auth }: HttpContextContra
             .from('grupos_pixeles as gp')
             .join('datos_compras as dc', 'dc.id_datos_compra', 'gp.id_datos_compra')
             .where('dc.id_usuario', `${auth.user?.id}`)
-        
-        console.log('data', data);
 
         params.data = data
         params.notification.state = true

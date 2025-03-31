@@ -11,7 +11,6 @@ export default class Controller {
   }
 
   public async logout(params: HttpContextContract) {
-    console.log("entra controller");
     return logout(params);
   }
 

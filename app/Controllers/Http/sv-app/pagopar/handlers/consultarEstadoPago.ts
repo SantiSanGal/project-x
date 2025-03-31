@@ -10,8 +10,6 @@ export const consultarEstadoPago = async ({
   request,
   response,
 }: HttpContextContract) => {
-  console.log("=============================");
-  console.log("ConsultarEstadoPago handler");
 
   let params = {
     data: {},
@@ -24,7 +22,6 @@ export const consultarEstadoPago = async ({
 
   try {
     const { hashPedido } = request.params();
-    console.log("trae hashPedido", hashPedido);
 
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     const publicToken = Env.get("PAGOPAR_TOKEN_PUBLICO");
@@ -40,14 +37,10 @@ export const consultarEstadoPago = async ({
       token_publico: publicToken,
     };
 
-    console.log("consultar_estado_pago_params", consultar_estado_pago_params);
-
     const { data } = await axios.post(
       "https://api.pagopar.com/api/pedidos/1.1/traer",
       consultar_estado_pago_params
     );
-
-    console.log('data', data);
 
     if (data && data.respuesta) {
       const { resultado } = data
@@ -68,18 +61,10 @@ export const consultarEstadoPago = async ({
         },
       ] = resultado;
 
-      console.log('ultimo_mensaje_error', ultimo_mensaje_error);
-      console.log('cancelado', cancelado);
-      console.log('monto', monto);
-
-
       const hashToCompare = crypto
         .createHash("sha1")
         .update(privateToken + hash_pedido)
         .digest("hex");
-
-      console.log('hashToCompare', hashToCompare);
-
 
       if (hashToCompare === token) {
         let pedido_update_params = {
@@ -89,6 +74,7 @@ export const consultarEstadoPago = async ({
           fecha_pago: fecha_pago,
           forma_pago_identificador: forma_pago_identificador,
           updated_at: DateTime.local().toISO(),
+          cancelado: cancelado
         };
 
         const updatedPedido = await Database.connection("pg")
@@ -98,21 +84,15 @@ export const consultarEstadoPago = async ({
           .update(pedido_update_params)
           .returning("id_grupo_pixeles");
 
-        console.log('updatedPedido', updatedPedido);
-
         if (updatedPedido.length > 0 && updatedPedido[0].id_grupo_pixeles) {
           const grupos_pixeles = await Database.connection("pg")
             .from("grupos_pixeles")
             .where("id_grupo_pixeles", updatedPedido[0].id_grupo_pixeles)
             .update({ id_estado: 2 });
 
-          console.log('grupos_pixeles', grupos_pixeles);
-
           const pixeles_individuales = await Database.connection('pg')
             .from('pixeles_individuales')
             .where('id_grupo_pixeles', updatedPedido[0].id_grupo_pixeles)
-
-          console.log('pixeles_individuales', pixeles_individuales);
 
           if (pagado) {
             Ws.io.emit('pintar', pixeles_individuales)
@@ -124,12 +104,10 @@ export const consultarEstadoPago = async ({
         pagado: data.resultado.pagado,
       };
     }
-    console.log("respuestaConsultaPagopar", data);
 
     params.notification.state = true;
     params.notification.type = "success";
     params.notification.message = "Pedido consultado con exito";
-    console.log("=============================");
     return response.status(200).json(params);
   } catch (e) {
     console.log("*****************************");
