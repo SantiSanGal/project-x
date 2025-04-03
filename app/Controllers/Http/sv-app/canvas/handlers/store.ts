@@ -29,7 +29,11 @@ export const store = async ({
 
   try {
     const { grupo_pixeles, pixeles, refer_code } = request.all();
+    const [_, referCode] = refer_code.split("-");
     const { user } = auth;
+
+    console.log("refer_code", refer_code);
+    console.log("referCode", referCode);
 
     if (!user) {
       await trx.rollback();
@@ -92,12 +96,26 @@ export const store = async ({
           })
         );
 
-        //TODO: Buscar en la tabla puntos todo lo que haga referencia al ID del grupo pixeles expirado y BORRAR
-        // TODO: Y Agregar sólo el punto del nuevo grupo y el referido si es que corresponde
-        /**
-         * para no borrar, se pueden buscar los registros que tengan esa tabla con referidos y actualizar al nuevo id del referido
-         * y si no tiene referidos, borrar los registros
-         */
+        // Eliminar registros anteriores en Puntos relacionados a este grupo
+        await trx.from("Puntos").where("id_grupo_pixeles", grupoId).del();
+
+        // Insertar registros en Puntos según si viene o no refer_code
+        if (!referCode) {
+          // Caso sin referido
+          await trx.table("Puntos").insert({
+            id_grupo_pixeles: grupoId,
+            id_grupo_pixeles_referido: null,
+          });
+        } else {
+          // Caso con referido: insertar dos registros
+          await trx.table("Puntos").insert([
+            { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
+            {
+              id_grupo_pixeles: grupoId,
+              id_grupo_pixeles_referido: referCode,
+            },
+          ]);
+        }
 
         params.notification.state = true;
         params.notification.type = "success";
@@ -129,11 +147,21 @@ export const store = async ({
         color: pixel.color,
         id_grupo_pixeles: grupoId,
       }));
-
-      // TODO: Hacer insert de punto del grupo de pixeles
-      // TODO: Hacer insert de punto del grupo de pixeles con referido, si es que corresponde
-
       await trx.table("pixeles_individuales").insert(pixelesData);
+
+      // Insertar puntos según la presencia de refer_code
+      if (!referCode) {
+        await trx.table("Puntos").insert({
+          id_grupo_pixeles: grupoId,
+          id_grupo_pixeles_referido: null,
+        });
+      } else {
+        await trx.table("Puntos").insert([
+          { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
+          { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: referCode },
+        ]);
+      }
+
       params.notification.state = true;
       params.notification.type = "success";
       params.notification.message = "Grupo registrado correctamente.";
@@ -272,6 +300,7 @@ export const store = async ({
     params.notification.message = "Pedido Registrado con éxito";
     return response.json(params);
   } catch (error) {
+    console.log("error", error);
     await trx.rollback();
     return response.status(500).json(params);
   }
