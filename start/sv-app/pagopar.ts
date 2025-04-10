@@ -8,4 +8,4 @@ Route.get(
 Route.get(
   "/consultarEstadoPago/:hashPedido",
   "sv-app/pagopar/controller.consultarEstadoPago"
-).middleware(['auth']);
+).middleware(["auth"]);

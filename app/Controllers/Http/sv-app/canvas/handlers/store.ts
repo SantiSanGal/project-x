@@ -251,7 +251,7 @@ export const store = async ({
         {
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
-          url_imagen: `${Env.get("URL_BACK")}/canvas/grupoPixeles/${justName}`,
+          url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
           descripcion: "",
           id_producto: grupoId,
           precio_total: montoTotal,

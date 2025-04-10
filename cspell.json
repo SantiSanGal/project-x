@@ -13,7 +13,8 @@
     "descripcion",
     "transaccion",
     "expiracion",
-    "luxon"
+    "luxon",
+    "reportador"
   ],
   "ignoreWords": [],
   "import": []
