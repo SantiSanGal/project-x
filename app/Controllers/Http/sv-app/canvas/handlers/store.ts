@@ -237,22 +237,25 @@ export const store = async ({
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
-        ruc: user.document ? user.document : "0000000",
-        email: user.email,
-        nombre: user.name,
-        telefono: "",
-        documento: user.document ? user.document : "0000000",
+        // ruc: user.document || "5688386-2",
+        ruc: "",
+        email: user.email || 'santiago.patiasoc@gmail.com',
+        nombre: user.name || 'santiago',
+        telefono: "+595985507615",
+        documento: user.document || "5688386",
+        // razon_social: "test",
         razon_social: "",
       },
       public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
       monto_total: montoTotal,
-      comision_transladada_comprador: false,
+      moneda: "USD",
+      comision_transladada_comprador: true,
       compras_items: [
         {
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
           url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
-          descripcion: "",
+          descripcion: "test",
           id_producto: grupoId,
           precio_total: montoTotal,
         },
@@ -262,11 +265,14 @@ export const store = async ({
       forma_pago: 9,
     };
 
+    console.log('pagoparPayload', pagoparPayload);
+
     const pagoparResponse = await axios.post(
       "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
     );
+    console.log('pagoparResponse', pagoparResponse.data);
 
     if (
       pagoparResponse.data.respuesta &&
