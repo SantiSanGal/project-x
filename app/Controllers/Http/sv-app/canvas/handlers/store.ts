@@ -32,6 +32,7 @@ export const store = async ({
     const [_, referCode] = refer_code.split("-");
     const { user } = auth;
 
+    // TODO: Validar que el código de referido no sea del mismo usuario
     console.log("refer_code", refer_code);
     console.log("referCode", referCode);
 
@@ -108,6 +109,7 @@ export const store = async ({
           });
         } else {
           // Caso con referido: insertar dos registros
+
           await trx.table("Puntos").insert([
             { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
             {
@@ -237,16 +239,14 @@ export const store = async ({
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
-        // ruc: user.document || "5688386-2",
-        ruc: "",
+        ruc: user.document || "5688386-2",
         email: user.email || 'santiago.patiasoc@gmail.com',
         nombre: user.name || 'santiago',
         telefono: "+595985507615",
         documento: user.document || "5688386",
-        // razon_social: "test",
-        razon_social: "",
+        razon_social: ""
       },
-      public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
+      public_key: Env.get('PAGOPAR_TOKEN_PUBLICO'),
       monto_total: montoTotal,
       moneda: "USD",
       comision_transladada_comprador: true,
@@ -255,15 +255,15 @@ export const store = async ({
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
           url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
-          descripcion: "test",
-          id_producto: grupoId,
-          precio_total: montoTotal,
-        },
+          descripcion: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
+          id_producto: "1",
+          precio_total: "1"
+        }
       ],
       id_pedido_comercio: id_pedido.toString(),
-      descripcion_resumen: "resumen del producto",
-      forma_pago: 9,
-    };
+      descripcion_resumen: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
+      forma_pago: 9
+    }
 
     console.log('pagoparPayload', pagoparPayload);
 
