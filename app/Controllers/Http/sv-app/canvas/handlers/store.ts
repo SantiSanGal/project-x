@@ -47,25 +47,21 @@ export const store = async ({
     }
 
     // Validar que el referCode exista y no sea del mismo usuario
+    // Detectar si el referCode pertenece al mismo usuario
+    let isSelfReferral = false;
     if (referCode) {
-      // Buscamos en pedidos el usuario que generó ese grupo de píxeles
       const pedidoReferido = await trx
         .from("pedidos")
         .select("id_usuario")
         .where("id_grupo_pixeles", referCode)
         .first();
 
-      // Si encontramos un pedido y el usuario coincide con el actual, error
-      if (pedidoReferido && pedidoReferido.id_usuario === user.id) {
-        await trx.rollback();
-        return response.status(400).json({
-          data: {},
-          notification: {
-            state: true,
-            type: "error",
-            message: "No puedes usar tu propio código de referido.",
-          },
-        });
+      if (pedidoReferido?.id_usuario === user.id) {
+        // Autorreferencia: lo ignoramos
+        isSelfReferral = true;
+        console.warn(
+          `Autorreferido detectado para usuario ${user.id}, se ignorará el referCode ${referCode}`
+        );
       }
     }
 
@@ -175,15 +171,20 @@ export const store = async ({
       await trx.table("pixeles_individuales").insert(pixelesData);
 
       // Insertar puntos según la presencia de refer_code
-      if (!referCode) {
+      // Si no hay referCode válido o es autorreferencia, solo 1 punto
+      if (!referCode || isSelfReferral) {
         await trx.table("Puntos").insert({
           id_grupo_pixeles: grupoId,
           id_grupo_pixeles_referido: null,
         });
       } else {
+        // Referido válido: 2 puntos (propio + referido)
         await trx.table("Puntos").insert([
           { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
-          { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: referCode },
+          {
+            id_grupo_pixeles: grupoId,
+            id_grupo_pixeles_referido: referCode,
+          },
         ]);
       }
 
