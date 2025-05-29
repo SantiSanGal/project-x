@@ -46,6 +46,29 @@ export const store = async ({
       return response.status(401).json({ message: "User ID is not available" });
     }
 
+    // Validar que el referCode exista y no sea del mismo usuario
+    if (referCode) {
+      // Buscamos en pedidos el usuario que generó ese grupo de píxeles
+      const pedidoReferido = await trx
+        .from("pedidos")
+        .select("id_usuario")
+        .where("id_grupo_pixeles", referCode)
+        .first();
+
+      // Si encontramos un pedido y el usuario coincide con el actual, error
+      if (pedidoReferido && pedidoReferido.id_usuario === user.id) {
+        await trx.rollback();
+        return response.status(400).json({
+          data: {},
+          notification: {
+            state: true,
+            type: "error",
+            message: "No puedes usar tu propio código de referido.",
+          },
+        });
+      }
+    }
+
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
 
     // Buscar grupo por coordenadas y estado "en proceso compra" (id_estado = 1)
@@ -240,13 +263,13 @@ export const store = async ({
       token: tokenForPagopar,
       comprador: {
         ruc: user.document || "5688386-2",
-        email: user.email || 'santiago.patiasoc@gmail.com',
-        nombre: user.name || 'santiago',
+        email: user.email || "santiago.patiasoc@gmail.com",
+        nombre: user.name || "santiago",
         telefono: "+595985507615",
         documento: user.document || "5688386",
-        razon_social: ""
+        razon_social: "",
       },
-      public_key: Env.get('PAGOPAR_TOKEN_PUBLICO'),
+      public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
       monto_total: montoTotal,
       moneda: "USD",
       comision_transladada_comprador: true,
@@ -257,22 +280,22 @@ export const store = async ({
           url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
           descripcion: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           id_producto: "1",
-          precio_total: "1"
-        }
+          precio_total: "1",
+        },
       ],
       id_pedido_comercio: id_pedido.toString(),
       descripcion_resumen: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
-      forma_pago: 9
-    }
+      forma_pago: 9,
+    };
 
-    console.log('pagoparPayload', pagoparPayload);
+    console.log("pagoparPayload", pagoparPayload);
 
     const pagoparResponse = await axios.post(
       "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
     );
-    console.log('pagoparResponse', pagoparResponse.data);
+    console.log("pagoparResponse", pagoparResponse.data);
 
     if (
       pagoparResponse.data.respuesta &&
