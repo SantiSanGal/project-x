@@ -14,7 +14,8 @@
     "transaccion",
     "expiracion",
     "luxon",
-    "reportador"
+    "reportador",
+    "contrasenhas"
   ],
   "ignoreWords": [],
   "import": []

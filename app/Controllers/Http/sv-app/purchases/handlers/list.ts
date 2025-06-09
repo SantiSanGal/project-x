@@ -1,64 +1,63 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import Database from '@ioc:Adonis/Lucid/Database';
+import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
+import Database from "@ioc:Adonis/Lucid/Database";
 
 export const list = async ({ response, auth }: HttpContextContract) => {
-    let params = {
-        data: {},
-        notification: {
-            state: false,
-            type: 'error',
-            message: 'Error en el Servidor'
-        }
+  let params = {
+    data: {},
+    notification: {
+      state: false,
+      type: "error",
+      message: "Error en el Servidor",
+    },
+  };
+
+  try {
+    const { user } = auth;
+
+    if (!user) {
+      return response.status(401).json({ message: "User ID is not available" });
     }
 
-    try {
-        const data = await Database.connection('pg')
-            .query()
-            .select(
-                'dc.id_datos_compra',
-                'gp.id_grupo_pixeles',
-                'gp.link_adjunta',
-                Database.raw("to_char(dc.fecha, 'YYYY-MM-DD') as fecha"),
-                'dc.monto'
-            )
-            .from('grupos_pixeles as gp')
-            .join('datos_compras as dc', 'dc.id_datos_compra', 'gp.id_datos_compra')
-            .where('dc.id_usuario', `${auth.user?.id}`);
-
-        const grupoPixelesIds = data.map(item => item.id_grupo_pixeles);
-        const pixeles = await Database.connection('pg')
-            .query()
-            .select(
-                'id_pixel_individual',
-                'coordenada_x',
-                'coordenada_y',
-                'color',
-                'id_grupo_pixeles',
-                'pintado'
-            )
-            .from('pixeles_individuales')
-            .whereIn('id_grupo_pixeles', grupoPixelesIds);
-
-        const pixelesMap = {};
-        pixeles.forEach(pixel => {
-            if (!pixelesMap[pixel.id_grupo_pixeles]) {
-                pixelesMap[pixel.id_grupo_pixeles] = [];
-            }
-            pixelesMap[pixel.id_grupo_pixeles].push(pixel);
-        });
-
-        const result = data.map(item => ({
-            ...item,
-            pixeles_individuales: pixelesMap[item.id_grupo_pixeles] || []
-        }));
-
-        params.data = result;
-        params.notification.state = true;
-        params.notification.type = 'success';
-        params.notification.message = 'Listado Correctamente';
-        return response.json(params);
-    } catch (error) {
-        console.log('error', error);
-        return response.status(500).json(params);
+    if (!user.id) {
+      return response.status(401).json({ message: "User ID is not available" });
     }
-}
+
+    const groups = await Database.from("pedidos as p")
+      .join("grupos_pixeles as gp", "p.id_grupo_pixeles", "gp.id_grupo_pixeles")
+      .leftJoin(
+        "pixeles_individuales as pi",
+        "pi.id_grupo_pixeles",
+        "gp.id_grupo_pixeles"
+      )
+      .where("p.id_usuario", user.id)
+      .whereIn("gp.id_estado", [2, 3])
+      .select([
+        "gp.id_grupo_pixeles as grupo_pixeles_id",
+        "gp.link_adjunta as link_adjunta",
+        Database.raw(`
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'coordenada_x', pi.coordenada_x,
+              'coordenada_y', pi.coordenada_y,
+              'color',         pi.color
+            )
+          ) FILTER (WHERE pi.id_pixel_individual IS NOT NULL),
+          '[]'
+        ) as pixeles_individuales
+      `),
+      ])
+      .groupBy("gp.id_grupo_pixeles", "gp.link_adjunta");
+
+    return response.json({
+      data: groups,
+      notification: {
+        state: true,
+        type: "success",
+        message: "Listado Correctamente",
+      },
+    });
+  } catch (error) {
+    return response.status(500).json(params);
+  }
+};

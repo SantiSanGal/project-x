@@ -32,10 +32,6 @@ export const store = async ({
     const [_, referCode] = refer_code.split("-");
     const { user } = auth;
 
-    // TODO: Validar que el código de referido no sea del mismo usuario
-    console.log("refer_code", refer_code);
-    console.log("referCode", referCode);
-
     if (!user) {
       await trx.rollback();
       return response.status(401).json({ message: "User ID is not available" });
