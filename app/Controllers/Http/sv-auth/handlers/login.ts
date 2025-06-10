@@ -1,3 +1,4 @@
+import Logger from "@ioc:Adonis/Core/Logger";
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import authValidator from "App/Validators/sv-auth/authValidator";
 import Database from "@ioc:Adonis/Lucid/Database";
@@ -17,60 +18,95 @@ export const login = async ({
     },
   };
 
-  try {
-    const { username, password } = await request.validate(authValidator);
+  // 1. Antes de todo, registramos que alguien intenta loguearse
+  const { username, password } = request.only(["username", "password"]);
+  Logger.info("Intento de inicio de sesión", { username });
 
-    // Buscar usuario en la tabla de contraseñas temporales
-    const tempPasswordEntry = await Database.from("contrasenhas_temporales")
+  try {
+    // 2. Validación de esquema
+    const payload = await request.validate(authValidator);
+    Logger.debug("Payload de login validado", { username });
+
+    // 3. Intento de contraseña temporal
+    const tempEntry = await Database.from("contrasenhas_temporales")
       .innerJoin("users", "users.id", "contrasenhas_temporales.user_id")
       .where("users.username", username)
       .andWhere("contrasenhas_temporales.expires_at", ">", new Date())
       .select("users.id", "contrasenhas_temporales.temporary_password")
       .first();
 
-    if (
-      tempPasswordEntry &&
-      (await Hash.verify(tempPasswordEntry.temporary_password, password))
-    ) {
-      // Contraseña temporal válida
-      const user = await auth.use("api").loginViaId(tempPasswordEntry.id, {
-        expiresIn: "1 days",
+    if (tempEntry) {
+      Logger.trace("Usuario con contraseña temporal detectado", {
+        userId: tempEntry.id,
       });
+      const isValidTemp = await Hash.verify(
+        tempEntry.temporary_password,
+        password
+      );
+      if (isValidTemp) {
+        const user = await auth.use("api").loginViaId(tempEntry.id, {
+          expiresIn: "1 days",
+        });
+        Logger.info("Login exitoso con contraseña temporal", {
+          userId: tempEntry.id,
+        });
 
-      params.data.token = user.token;
-      params.notification.state = true;
-      params.notification.type = "success";
-      params.notification.message =
-        "Inicio Sesión Correctamente con Contraseña Temporal";
-      return response.ok(params);
+        params.data.token = user.token;
+        params.notification = {
+          state: true,
+          type: "success",
+          message: "Inicio de sesión correcto (temporal)",
+        };
+        return response.ok(params);
+      } else {
+        Logger.warn("Contraseña temporal inválida", { username });
+        return response.unauthorized({
+          messages: ["Usuario o contraseña incorrectos"],
+        });
+      }
     }
 
-    // Si no hay una contraseña temporal válida, intentar autenticación normal
-    const token = await auth.attempt(username, password, {
-      expiresIn: "1 days",
-    });
+    // 4. Intento de autenticación normal
+    try {
+      const token = await auth.attempt(username, password, {
+        expiresIn: "1 days",
+      });
+      Logger.info("Login exitoso", { username });
 
-    params.data.token = token;
-    params.notification.state = true;
-    params.notification.type = "success";
-    params.notification.message = "Inicio Sesión Correctamente";
-    return response.ok(params);
-  } catch (e) {
-    if (e.messages && e.messages.errors) {
-      // Extraer solo los mensajes de error en un array
+      params.data.token = token;
+      params.notification = {
+        state: true,
+        type: "success",
+        message: "Inicio de sesión correcto",
+      };
+      return response.ok(params);
+    } catch (authError) {
+      // Capturamos errores de auth.attempt
+      Logger.warn("Fallo de autenticación", {
+        username,
+        error: authError.message,
+      });
+      return response.unauthorized({
+        messages: ["Usuario o contraseña incorrectos"],
+      });
+    }
+  } catch (e: any) {
+    // 5. Errores de validación de payload
+    if (e.messages?.errors) {
       const messages = e.messages.errors.map((err: any) => err.message);
+      Logger.warn("Errores de validación en login", {
+        username,
+        errors: messages,
+      });
       return response.unauthorized({ messages });
     }
 
-    if (
-      e.message === "E_INVALID_AUTH_PASSWORD: Password mis-match" ||
-      e.message === "E_INVALID_AUTH_UID: User not found"
-    ) {
-      return response.unauthorized({
-        messages: ["Incorrect username or password"],
-      });
-    }
-
+    // 6. Errores inesperados
+    Logger.error("Error inesperado en login", {
+      username,
+      stack: e.stack,
+      message: e.message,
+    });
     return response.internalServerError({ messages: ["Unexpected error"] });
   }
 };

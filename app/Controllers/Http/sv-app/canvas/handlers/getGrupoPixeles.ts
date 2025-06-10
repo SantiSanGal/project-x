@@ -1,6 +1,7 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
 
+// TODO ver si se usa
 export const getGrupoPixeles = async ({
   request,
   response,

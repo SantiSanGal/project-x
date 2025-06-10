@@ -5,12 +5,15 @@
  * file.
  */
 
-import proxyAddr from "proxy-addr";
-import Env from "@ioc:Adonis/Core/Env";
-import type { ServerConfig } from "@ioc:Adonis/Core/Server";
-import type { LoggerConfig } from "@ioc:Adonis/Core/Logger";
-import type { ProfilerConfig } from "@ioc:Adonis/Core/Profiler";
 import type { ValidatorConfig } from "@ioc:Adonis/Core/Validator";
+import type { ProfilerConfig } from "@ioc:Adonis/Core/Profiler";
+import type { LoggerConfig } from "@ioc:Adonis/Core/Logger";
+import type { ServerConfig } from "@ioc:Adonis/Core/Server";
+import rfs = require("rotating-file-stream");
+import Env from "@ioc:Adonis/Core/Env";
+import proxyAddr from "proxy-addr";
+import { DateTime } from "luxon";
+import { join } from "path";
 
 /*
 |--------------------------------------------------------------------------
@@ -134,53 +137,45 @@ export const http: ServerConfig = {
 | Logger
 |--------------------------------------------------------------------------
 */
+
+// 1) Directorio de logs
+const logDir = join(__dirname, "..", "logs");
+
+// 2) Stream rotatorio (igual que antes)
+const fileStream = rfs.createStream(
+  (time, index) => {
+    if (!time) return "app.log";
+    const d = new Date(time);
+    const yyyy = d.getFullYear();
+    const MM = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `app-${yyyy}-${MM}-${dd}.log`;
+  },
+  {
+    interval: "1d",
+    path: logDir,
+    maxFiles: 7,
+    compress: "gzip",
+  }
+);
+
 export const logger: LoggerConfig = {
-  /*
-  |--------------------------------------------------------------------------
-  | Application name
-  |--------------------------------------------------------------------------
-  |
-  | The name of the application you want to add to the log. It is recommended
-  | to always have app name in every log line.
-  |
-  | The `APP_NAME` environment variable is automatically set by AdonisJS by
-  | reading the `name` property from the `package.json` file.
-  |
-  */
   name: Env.get("APP_NAME"),
-
-  /*
-  |--------------------------------------------------------------------------
-  | Toggle logger
-  |--------------------------------------------------------------------------
-  |
-  | Enable or disable logger application wide
-  |
-  */
   enabled: true,
-
-  /*
-  |--------------------------------------------------------------------------
-  | Logging level
-  |--------------------------------------------------------------------------
-  |
-  | The level from which you want the logger to flush logs. It is recommended
-  | to make use of the environment variable, so that you can define log levels
-  | at deployment level and not code level.
-  |
-  */
   level: Env.get("LOG_LEVEL", "info"),
+  prettyPrint: false,
 
-  /*
-  |--------------------------------------------------------------------------
-  | Pretty print
-  |--------------------------------------------------------------------------
-  |
-  | It is highly advised NOT to use `prettyPrint` in production, since it
-  | can have huge impact on performance.
-  |
-  */
-  prettyPrint: Env.get("NODE_ENV") === "development",
+  // 3) Función custom para que time sea ISO en zona America/Asuncion
+  timestamp: () => {
+    const ts = DateTime.now()
+      .setZone("America/Asuncion") // tu zona horaria
+      .toISO({ suppressMilliseconds: false });
+    // Note el leading comma / key wrapper que Pino espera
+    return `,"time":"${ts}"`;
+  },
+
+  // 4) El stream rotatorio para el fichero
+  stream: fileStream as any,
 };
 
 /*
