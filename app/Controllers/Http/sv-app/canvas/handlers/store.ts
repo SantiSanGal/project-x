@@ -112,20 +112,20 @@ export const store = async ({
           })
         );
 
-        // Eliminar registros anteriores en Puntos relacionados a este grupo
-        await trx.from("Puntos").where("id_grupo_pixeles", grupoId).del();
+        // Eliminar registros anteriores en puntos relacionados a este grupo
+        await trx.from("puntos").where("id_grupo_pixeles", grupoId).del();
 
-        // Insertar registros en Puntos según si viene o no refer_code
+        // Insertar registros en puntos según si viene o no refer_code
         if (!referCode) {
           // Caso sin referido
-          await trx.table("Puntos").insert({
+          await trx.table("puntos").insert({
             id_grupo_pixeles: grupoId,
             id_grupo_pixeles_referido: null,
           });
         } else {
           // Caso con referido: insertar dos registros
 
-          await trx.table("Puntos").insert([
+          await trx.table("puntos").insert([
             { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
             {
               id_grupo_pixeles: grupoId,
@@ -169,13 +169,13 @@ export const store = async ({
       // Insertar puntos según la presencia de refer_code
       // Si no hay referCode válido o es autorreferencia, solo 1 punto
       if (!referCode || isSelfReferral) {
-        await trx.table("Puntos").insert({
+        await trx.table("puntos").insert({
           id_grupo_pixeles: grupoId,
           id_grupo_pixeles_referido: null,
         });
       } else {
         // Referido válido: 2 puntos (propio + referido)
-        await trx.table("Puntos").insert([
+        await trx.table("puntos").insert([
           { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
           {
             id_grupo_pixeles: grupoId,

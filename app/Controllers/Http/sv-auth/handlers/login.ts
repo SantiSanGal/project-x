@@ -20,7 +20,10 @@ export const login = async ({
 
   // 1. Antes de todo, registramos que alguien intenta loguearse
   const { username, password } = request.only(["username", "password"]);
-  Logger.info("Intento de inicio de sesión", { username });
+
+  Logger.info(
+    `----------------------- Intento de Inicio de Sesión ${username} ----------------------`
+  );
 
   try {
     // 2. Validación de esquema
