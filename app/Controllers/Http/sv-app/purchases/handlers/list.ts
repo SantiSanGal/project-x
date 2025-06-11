@@ -2,15 +2,6 @@ import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
 
 export const list = async ({ response, auth }: HttpContextContract) => {
-  let params = {
-    data: {},
-    notification: {
-      state: false,
-      type: "error",
-      message: "Error en el Servidor",
-    },
-  };
-
   try {
     const { user } = auth;
 
@@ -58,6 +49,12 @@ export const list = async ({ response, auth }: HttpContextContract) => {
       },
     });
   } catch (error) {
-    return response.status(500).json(params);
+    return response.status(500).json({
+      notification: {
+        state: false,
+        type: "error",
+        message: "Error en el Servidor",
+      },
+    });
   }
 };

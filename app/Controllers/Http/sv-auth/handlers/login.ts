@@ -1,7 +1,7 @@
-import Logger from "@ioc:Adonis/Core/Logger";
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import authValidator from "App/Validators/sv-auth/authValidator";
 import Database from "@ioc:Adonis/Lucid/Database";
+import Logger from "@ioc:Adonis/Core/Logger";
 import Hash from "@ioc:Adonis/Core/Hash";
 
 export const login = async ({
@@ -18,17 +18,12 @@ export const login = async ({
     },
   };
 
-  // 1. Antes de todo, registramos que alguien intenta loguearse
-  const { username, password } = request.only(["username", "password"]);
-
-  Logger.info(
-    `----------------------- Intento de Inicio de Sesión ${username} ----------------------`
-  );
-
   try {
     // 2. Validación de esquema
-    const payload = await request.validate(authValidator);
-    Logger.debug("Payload de login validado", { username });
+    const { username, password } = await request.validate(authValidator);
+    Logger.info(
+      `----------------------- Inicio de Sesión ${username} ----------------------`
+    );
 
     // 3. Intento de contraseña temporal
     const tempEntry = await Database.from("contrasenhas_temporales")
@@ -93,23 +88,16 @@ export const login = async ({
         messages: ["Usuario o contraseña incorrectos"],
       });
     }
-  } catch (e: any) {
+  } catch (e) {
     // 5. Errores de validación de payload
     if (e.messages?.errors) {
       const messages = e.messages.errors.map((err: any) => err.message);
-      Logger.warn("Errores de validación en login", {
-        username,
-        errors: messages,
-      });
+      Logger.warn(`Errores de validación en login ${messages}`);
       return response.unauthorized({ messages });
     }
 
     // 6. Errores inesperados
-    Logger.error("Error inesperado en login", {
-      username,
-      stack: e.stack,
-      message: e.message,
-    });
+    Logger.error(`Error inesperado en login ${JSON.stringify(e)}`);
     return response.internalServerError({ messages: ["Unexpected error"] });
   }
 };
