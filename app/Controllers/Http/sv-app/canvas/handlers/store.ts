@@ -8,6 +8,7 @@ import crypto from "crypto";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
+import Logger from "@ioc:Adonis/Core/Logger";
 
 const montoTotal = "1";
 
@@ -16,6 +17,10 @@ export const store = async ({
   response,
   auth,
 }: HttpContextContract) => {
+  Logger.info(
+    "---------------------- Inicio handler Store Pedidos ----------------------"
+  );
+
   let params = {
     data: {},
     notification: {
@@ -28,24 +33,73 @@ export const store = async ({
   const trx = await Database.transaction();
 
   try {
+    // 1. Leer y validar payload básico
     const { grupo_pixeles, pixeles, refer_code } = request.all();
-    const [_, referCode] = refer_code.split("-");
+    Logger.trace(
+      `Payload recibido - grupo_pixeles: ${JSON.stringify(
+        grupo_pixeles
+      )} - pixeles: ${JSON.stringify(pixeles)} - refer_code: ${refer_code}`
+    );
+
+    if (!grupo_pixeles) {
+      Logger.warn(`Falta parámetro grupo_pixeles en request`);
+      await trx.rollback();
+      return response.badRequest({ message: "Missing grupo_pixeles" });
+    }
+
+    if (!Array.isArray(pixeles) || pixeles.length === 0) {
+      Logger.warn(
+        `Pixeles inválidos o faltantes - pixeles: ${JSON.stringify(pixeles)}`
+      );
+      await trx.rollback();
+      return response.badRequest({ message: "Pixeles inválidos" });
+    }
+
+    // 2. Usuario autenticado
     const { user } = auth;
 
     if (!user) {
+      Logger.warn(`Usuario no autenticado`);
       await trx.rollback();
-      return response.status(401).json({ message: "User ID is not available" });
+      return response.status(401).json({ message: "User not authenticated" });
     }
 
     if (!user.id) {
+      Logger.warn(`Usuario autenticado sin ID`);
       await trx.rollback();
       return response.status(401).json({ message: "User ID is not available" });
     }
 
-    // Validar que el referCode exista y no sea del mismo usuario
-    // Detectar si el referCode pertenece al mismo usuario
+    Logger.info(`Usuario autenticado - userId: ${user.id}`);
+
+    // 3. Parseo de refer_code
+    let referCode: string | null = null;
+    if (refer_code) {
+      try {
+        const parts = refer_code.split("-");
+        if (parts.length < 2) {
+          Logger.warn(
+            `Formato de refer_code inesperado - refer_code: ${refer_code}`
+          );
+        } else {
+          referCode = parts[1];
+          Logger.trace(`refer_code parseado - referCode: ${referCode}`);
+        }
+      } catch (err: any) {
+        Logger.error(
+          `Error al parsear refer_code - refer_code: ${refer_code} - error: ${err.message}`
+        );
+      }
+    } else {
+      Logger.trace(`No se proporcionó refer_code`);
+    }
+
+    // 4. Detección de autorreferencia
     let isSelfReferral = false;
     if (referCode) {
+      Logger.trace(
+        `Buscando pedido referido existente - referCode: ${referCode}`
+      );
       const pedidoReferido = await trx
         .from("pedidos")
         .select("id_usuario")
@@ -53,17 +107,25 @@ export const store = async ({
         .first();
 
       if (pedidoReferido?.id_usuario === user.id) {
-        // Autorreferencia: lo ignoramos
         isSelfReferral = true;
-        console.warn(
-          `Autorreferido detectado para usuario ${user.id}, se ignorará el referCode ${referCode}`
+        Logger.trace(
+          `Autorreferencia detectada, se ignorará referCode - userId: ${user.id} - referCode: ${referCode}`
         );
       }
     }
 
+    // 5. Preparar nueva expiración
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
+    Logger.trace(
+      `Fecha de expiración calculada - newExpiration: ${newExpiration}`
+    );
 
-    // Buscar grupo por coordenadas y estado "en proceso compra" (id_estado = 1)
+    // 6. Buscar grupo existente
+    Logger.trace(
+      `Buscando grupo existente en DB - grupo_pixeles: ${JSON.stringify(
+        grupo_pixeles
+      )}`
+    );
     const grupoExistente = await trx
       .from("grupos_pixeles")
       .where("coordenada_x_inicio", grupo_pixeles.coordenada_x_inicio)
@@ -76,71 +138,90 @@ export const store = async ({
     let grupoId: number;
 
     if (grupoExistente) {
-      // El grupo existe, verificar si está expirado
+      grupoId = grupoExistente.id_grupo_pixeles;
+      Logger.info(`Grupo existente encontrado - grupoId: ${grupoId}`);
+
+      // 6.1. Verificar expiración
       const fechaExpiracionGrupo = DateTime.fromJSDate(
         new Date(grupoExistente.fecha_expiracion)
       );
       const estaExpirado = DateTime.local() > fechaExpiracionGrupo;
+      Logger.trace(
+        `Verificando expiración de grupo - grupoId: ${grupoId} - fechaExpiracion: ${fechaExpiracionGrupo.toISO()} - isExpired: ${estaExpirado}`
+      );
 
       if (!estaExpirado) {
-        // Si el grupo existe y no está expirado, no se hace nada
+        Logger.info(`Grupo activo sin cambios - grupoId: ${grupoId}`);
         await trx.commit();
-        params.notification.state = true;
-        params.notification.type = "info";
-        params.notification.message =
-          "El grupo se encuentra activo, sin cambios.";
+        params.notification = {
+          state: true,
+          type: "info",
+          message: "El grupo se encuentra activo, sin cambios.",
+        };
         return response.json(params);
-      } else {
-        // Si el grupo existe y está expirado, se renueva la fecha y se actualizan los colores de los píxeles
-        grupoId = grupoExistente.id_grupo_pixeles;
-        // Renovar fecha de expiración
-        await trx
-          .from("grupos_pixeles")
-          .where("id_grupo_pixeles", grupoId)
-          .update({ fecha_expiracion: newExpiration });
-
-        await Promise.all(
-          pixeles.map((pixel) => {
-            return trx
-              .from("pixeles_individuales")
-              .where({
-                id_grupo_pixeles: grupoId,
-                coordenada_x: pixel.coordenada_x,
-                coordenada_y: pixel.coordenada_y,
-              })
-              .update({ color: pixel.color });
-          })
-        );
-
-        // Eliminar registros anteriores en puntos relacionados a este grupo
-        await trx.from("puntos").where("id_grupo_pixeles", grupoId).del();
-
-        // Insertar registros en puntos según si viene o no refer_code
-        if (!referCode) {
-          // Caso sin referido
-          await trx.table("puntos").insert({
-            id_grupo_pixeles: grupoId,
-            id_grupo_pixeles_referido: null,
-          });
-        } else {
-          // Caso con referido: insertar dos registros
-
-          await trx.table("puntos").insert([
-            { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
-            {
-              id_grupo_pixeles: grupoId,
-              id_grupo_pixeles_referido: referCode,
-            },
-          ]);
-        }
-
-        params.notification.state = true;
-        params.notification.type = "success";
-        params.notification.message =
-          "Grupo expirado actualizado correctamente.";
       }
+
+      // 6.2. Renovar expiración y actualizar colores
+      Logger.info(
+        `Grupo expirado, renovando fechas y colores - grupoId: ${grupoId}`
+      );
+      await trx
+        .from("grupos_pixeles")
+        .where("id_grupo_pixeles", grupoId)
+        .update({ fecha_expiracion: newExpiration });
+      Logger.trace(
+        `Fecha de expiración actualizada - grupoId: ${grupoId} - newExpiration: ${newExpiration}`
+      );
+
+      await Promise.all(
+        pixeles.map((pixel) =>
+          trx
+            .from("pixeles_individuales")
+            .where({
+              id_grupo_pixeles: grupoId,
+              coordenada_x: pixel.coordenada_x,
+              coordenada_y: pixel.coordenada_y,
+            })
+            .update({ color: pixel.color })
+        )
+      );
+      Logger.trace(
+        `Colores de píxeles actualizados - grupoId: ${grupoId} - count: ${pixeles.length}`
+      );
+
+      await trx.from("puntos").where("id_grupo_pixeles", grupoId).del();
+      Logger.trace(
+        `Registros de puntos anteriores eliminados - grupoId: ${grupoId}`
+      );
+
+      if (!referCode || isSelfReferral) {
+        await trx.table("puntos").insert({
+          id_grupo_pixeles: grupoId,
+          id_grupo_pixeles_referido: null,
+        });
+      } else {
+        await trx.table("puntos").insert([
+          { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
+          {
+            id_grupo_pixeles: grupoId,
+            id_grupo_pixeles_referido: referCode!,
+          },
+        ]);
+      }
+      Logger.info(
+        `Puntos insertados (grupo expirado) - grupoId: ${grupoId} - referCode: ${
+          referCode ?? "null"
+        }`
+      );
+
+      params.notification = {
+        state: true,
+        type: "success",
+        message: "Grupo expirado actualizado correctamente.",
+      };
     } else {
-      // El grupo no existe, se crea uno nuevo
+      // 7. Crear nuevo grupo
+      Logger.info(`No existe grupo, creando uno nuevo`);
       const grupoInsert = {
         link_adjunta: grupo_pixeles.link,
         coordenada_x_inicio: grupo_pixeles.coordenada_x_inicio,
@@ -150,31 +231,32 @@ export const store = async ({
         id_estado: 1,
         fecha_expiracion: newExpiration,
       };
+      Logger.trace(`Datos para nuevo grupo - ${JSON.stringify(grupoInsert)}`);
 
       const result = await trx
         .table("grupos_pixeles")
         .insert(grupoInsert)
         .returning("id_grupo_pixeles");
       grupoId = result[0].id_grupo_pixeles;
+      Logger.info(`Grupo insertado con ID - grupoId: ${grupoId}`);
 
-      // Insertar de forma masiva los píxeles individuales del grupo
-      const pixelesData = pixeles.map((pixel: any) => ({
-        coordenada_x: pixel.coordenada_x,
-        coordenada_y: pixel.coordenada_y,
-        color: pixel.color,
+      const pixelesData = pixeles.map((p: any) => ({
+        coordenada_x: p.coordenada_x,
+        coordenada_y: p.coordenada_y,
+        color: p.color,
         id_grupo_pixeles: grupoId,
       }));
       await trx.table("pixeles_individuales").insert(pixelesData);
+      Logger.trace(
+        `Píxeles individuales insertados - grupoId: ${grupoId} - count: ${pixelesData.length}`
+      );
 
-      // Insertar puntos según la presencia de refer_code
-      // Si no hay referCode válido o es autorreferencia, solo 1 punto
       if (!referCode || isSelfReferral) {
         await trx.table("puntos").insert({
           id_grupo_pixeles: grupoId,
           id_grupo_pixeles_referido: null,
         });
       } else {
-        // Referido válido: 2 puntos (propio + referido)
         await trx.table("puntos").insert([
           { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
           {
@@ -183,13 +265,20 @@ export const store = async ({
           },
         ]);
       }
+      Logger.info(
+        `Puntos insertados (nuevo grupo) - grupoId: ${grupoId} - referCode: ${
+          referCode ?? "null"
+        } - isSelfReferral: ${isSelfReferral}`
+      );
 
-      params.notification.state = true;
-      params.notification.type = "success";
-      params.notification.message = "Grupo registrado correctamente.";
+      params.notification = {
+        state: true,
+        type: "success",
+        message: "Grupo registrado correctamente.",
+      };
     }
 
-    // Insertar el pedido con fecha máxima de pago 7 minutos después del created_at
+    // 8. Insertar pedido
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: user.id,
@@ -199,41 +288,53 @@ export const store = async ({
       updated_at: DateTime.local().toISO(),
       fecha_maxima_pago: DateTime.local().plus({ minutes: 7 }).toISO(),
     };
+    Logger.trace(
+      `Datos para insertar pedido - ${JSON.stringify(pedido_insert_params)}`
+    );
 
     const [{ id_pedido }] = await trx
       .table("pedidos")
       .insert(pedido_insert_params)
       .returning("id_pedido");
+    Logger.info(`Pedido insertado con ID - id_pedido: ${id_pedido}`);
 
-    // GENERAR IMAGEN A PARTIR DE LOS PÍXELES
-    // 1. Calcular el área del dibujo (normalizando coordenadas)
-    const minX = Math.min(...pixeles.map((p: any) => p.coordenada_x));
-    const minY = Math.min(...pixeles.map((p: any) => p.coordenada_y));
-    const maxX = Math.max(...pixeles.map((p: any) => p.coordenada_x));
-    const maxY = Math.max(...pixeles.map((p: any) => p.coordenada_y));
+    // 9. Generar imagen
+    Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
+    const xs = pixeles.map((p: any) => p.coordenada_x);
+    const ys = pixeles.map((p: any) => p.coordenada_y);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    const maxX = Math.max(...xs);
+    const maxY = Math.max(...ys);
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
+    Logger.trace(`Dimensiones canvas - width: ${width} - height: ${height}`);
+
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
-    // Se pinta cada píxel ajustando la posición
     pixeles.forEach((pixel: any) => {
       const x = pixel.coordenada_x - minX;
       const y = pixel.coordenada_y - minY;
-      // Validar color con expresión regular (opcional)
       if (!/^#[0-9A-F]{6}$/i.test(pixel.color)) {
-        console.error(`Color inválido: ${pixel.color}`);
+        Logger.warn(
+          `Color inválido en pixel, se omite - ${JSON.stringify(pixel)}`
+        );
         return;
       }
       ctx.fillStyle = pixel.color;
       ctx.fillRect(x, y, 1, 1);
     });
-    // 2. Generar un hash para el nombre de la imagen
+    Logger.trace(`Canvas pintado - grupoId: ${grupoId}`);
+
     const hash = crypto
       .createHash("sha1")
       .update(DateTime.local().toISO() + grupoId)
       .digest("hex");
     const fileName = `${grupoId}_${hash}.png`;
-    // 3. Guardar la imagen en public/individuales
+    Logger.trace(
+      `Hash para imagen generado - hash: ${hash} - fileName: ${fileName}`
+    );
+
     const individualesDir = path.join(
       __dirname,
       "./../../../../../../",
@@ -241,13 +342,32 @@ export const store = async ({
       "individuales"
     );
     if (!fs.existsSync(individualesDir)) {
+      Logger.trace(
+        `Directorio de imágenes no existe, creando - individualesDir: ${individualesDir}`
+      );
       fs.mkdirSync(individualesDir, { recursive: true });
+      Logger.trace(
+        `Directorio de imágenes creado - individualesDir: ${individualesDir}`
+      );
     }
+
     const imagePath = path.join(individualesDir, fileName);
     const buffer = canvas.toBuffer("image/png");
     fs.writeFileSync(imagePath, buffer);
+    Logger.info(`Imagen guardada en disco - imagePath: ${imagePath}`);
 
+    // 10. Preparar y llamar a Pagopar
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
+    if (!privateToken) {
+      Logger.error(`PAGOPAR_TOKEN_PRIVADO no definido en Env`);
+      throw new Error("Missing PAGOPAR_TOKEN_PRIVADO");
+    }
+
+    const publicToken = Env.get("PAGOPAR_TOKEN_PUBLICO");
+    if (!publicToken) {
+      Logger.error(`PAGOPAR_TOKEN_PUBLICO no definido en Env`);
+      throw new Error("Missing PAGOPAR_TOKEN_PUBLICO");
+    }
 
     const tokenForPagopar = crypto
       .createHash("sha1")
@@ -266,7 +386,7 @@ export const store = async ({
         documento: user.document || "5688386",
         razon_social: "",
       },
-      public_key: Env.get("PAGOPAR_TOKEN_PUBLICO"),
+      public_key: publicToken,
       monto_total: montoTotal,
       moneda: "USD",
       comision_transladada_comprador: true,
@@ -285,14 +405,25 @@ export const store = async ({
       forma_pago: 9,
     };
 
-    console.log("pagoparPayload", pagoparPayload);
+    Logger.trace(
+      `Payload para Pagopar preparado - ${JSON.stringify(pagoparPayload)}`
+    );
+
+    Logger.info(`Enviando petición a Pagopar`);
 
     const pagoparResponse = await axios.post(
-      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
+      "https://api.pagopar.com/api/comercios/2.0/iniciar-transacción-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
     );
-    console.log("pagoparResponse", pagoparResponse.data);
+
+    Logger.info(
+      `Respuesta recibida de Pagopar - status: ${
+        pagoparResponse.status
+      } - data: ${JSON.stringify(pagoparResponse.data)}`
+    );
+
+    console.log("pagoparResponse", pagoparResponse);
 
     if (
       pagoparResponse.data.respuesta &&
@@ -300,9 +431,13 @@ export const store = async ({
       pagoparResponse.data.resultado[0]
     ) {
       const dataToken = pagoparResponse.data.resultado[0].data;
-      //número de referencia de pagopar
       const pagopar_pedido_transaccion =
         pagoparResponse.data.resultado[0].pedido;
+
+      Logger.info(
+        `Transacción Pagopar exitosa - id_pedido: ${id_pedido} - dataToken: ${dataToken} - pagopar_pedido_transaccion: ${pagopar_pedido_transaccion}`
+      );
+
       params.data = {
         dataToken,
         code_for_refer: `TP-${grupoId}`,
@@ -310,23 +445,39 @@ export const store = async ({
 
       await trx.from("pedidos").where("id_pedido", id_pedido).update({
         data_token: dataToken,
-        pagopar_pedido_transaccion: pagopar_pedido_transaccion,
+        pagopar_pedido_transaccion,
         token_generado: tokenForPagopar,
       });
+
+      Logger.trace(
+        `Pedido actualizado con datos de Pagopar - id_pedido: ${id_pedido}`
+      );
     } else {
+      Logger.warn(
+        `Respuesta Pagopar sin resultado esperado - responseData: ${JSON.stringify(
+          pagoparResponse.data
+        )}`
+      );
       await trx.rollback();
       throw new Error("Error al generar pedido en Pagopar");
     }
 
+    // 11. Finalizar transacción y notificar
     await trx.commit();
-    //para que en el canvas bloquee ocupado
+    Logger.info(`Transacción confirmada (commit) - pedidoId: ${id_pedido}`);
     Ws.io.emit("nuevo_registro");
-    params.notification.state = true;
-    params.notification.type = "success";
-    params.notification.message = "Pedido Registrado con éxito";
+    Logger.trace(`Evento WebSocket emitido - event: nuevo_registro`);
+
+    params.notification = {
+      state: true,
+      type: "success",
+      message: "Pedido Registrado con éxito",
+    };
     return response.json(params);
   } catch (error) {
-    console.log("error", error);
+    Logger.error(
+      `Error inesperado en handler STORE - message: ${error.message} - stack: ${error.stack}`
+    );
     await trx.rollback();
     return response.status(500).json(params);
   }

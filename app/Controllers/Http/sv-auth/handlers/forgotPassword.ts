@@ -5,12 +5,20 @@ import { SendMail } from "App/Utils/SendMail";
 import Hash from "@ioc:Adonis/Core/Hash";
 import { DateTime } from "luxon";
 import crypto from "crypto";
+import Logger from "@ioc:Adonis/Core/Logger";
 
 export const forgotPassword = async ({
   request,
   response,
 }: HttpContextContract) => {
+  // Generar un ID único para esta petición
+  const requestId = crypto.randomBytes(8).toString("hex");
+  Logger.info(
+    `----- Inicio handler FORGOT PASSWORD - requestId: ${requestId} -----`
+  );
+
   const trx = await Database.transaction();
+  Logger.trace(`Transacción iniciada - requestId: ${requestId}`);
 
   const params: any = {
     notification: {
@@ -22,43 +30,105 @@ export const forgotPassword = async ({
   };
 
   try {
+    // 1. Validación del payload
+    Logger.trace(`Validando payload - requestId: ${requestId}`);
     const { email } = await request.validate(forgotPasswordValidator);
+    Logger.info(`Payload validado - email: ${email} - requestId: ${requestId}`);
+
+    // 2. Generar contraseña temporal
     const temporaryPassword = generateTemporaryPassword();
-    const [{ id }] = await Database.connection("pg")
+    Logger.trace(
+      `Contraseña temporal generada - temporaryPassword: ${temporaryPassword} - requestId: ${requestId}`
+    );
+
+    // 3. Buscar usuario por email
+    Logger.trace(
+      `Buscando usuario en DB - email: ${email} - requestId: ${requestId}`
+    );
+    const userRecord = await Database.connection("pg")
       .query()
       .select("id")
       .from("users")
-      .where("email", email);
+      .where("email", email)
+      .first();
+    if (!userRecord) {
+      Logger.warn(
+        `Email no encontrado en usuarios - email: ${email} - requestId: ${requestId}`
+      );
+      // Aunque no exista, decidimos no revelar esta información al cliente
+    } else {
+      const userId = userRecord.id;
+      Logger.info(
+        `Usuario encontrado - userId: ${userId} - requestId: ${requestId}`
+      );
 
-    let temporary_password_insert_params = {
-      user_id: id,
-      temporary_password: await Hash.make(temporaryPassword),
-      created_at: DateTime.local().toISO(),
-      expires_at: DateTime.local().plus({ hours: 24 }).toISO(),
-    };
+      // 4. Preparar datos para inserción
+      const hashedTemp = await Hash.make(temporaryPassword);
+      const now = DateTime.local();
+      const expiresAt = now.plus({ hours: 24 }).toISO();
+      const temporary_password_insert_params = {
+        user_id: userId,
+        temporary_password: hashedTemp,
+        created_at: now.toISO(),
+        expires_at: expiresAt,
+      };
+      Logger.trace(
+        `Params para contrasenhas_temporales - ${JSON.stringify(
+          temporary_password_insert_params
+        )} - requestId: ${requestId}`
+      );
 
-    await trx
-      .from("contrasenhas_temporales")
-      .where("user_id", id)
-      .update({ expires_at: DateTime.local().minus({ hours: 1 }).toISO() });
-    await trx
-      .table("contrasenhas_temporales")
-      .insert(temporary_password_insert_params);
-    await trx.commit();
+      // 5. Expirar contraseñas anteriores
+      const expireOld = now.minus({ hours: 1 }).toISO();
+      Logger.trace(
+        `Expirando contraseñas antiguas - until: ${expireOld} - requestId: ${requestId}`
+      );
+      await trx
+        .from("contrasenhas_temporales")
+        .where("user_id", userId)
+        .update({ expires_at: expireOld });
+      Logger.info(
+        `Contrasenhas antiguas expiradas - userId: ${userId} - requestId: ${requestId}`
+      );
 
-    const htmlParam = await resetPasswordMail(temporaryPassword);
-    await SendMail(email, htmlParam);
+      // 6. Insertar nueva contraseña temporal
+      await trx
+        .table("contrasenhas_temporales")
+        .insert(temporary_password_insert_params);
+      Logger.info(
+        `Contrasenha temporal insertada - userId: ${userId} - requestId: ${requestId}`
+      );
 
+      // 7. Commit de la transacción
+      await trx.commit();
+      Logger.info(`Transacción commit - requestId: ${requestId}`);
+
+      // 8. Preparar y enviar correo
+      Logger.trace(`Generando HTML de correo - requestId: ${requestId}`);
+      const htmlParam = await resetPasswordMail(temporaryPassword);
+      Logger.info(
+        `Enviando correo de reset - email: ${email} - requestId: ${requestId}`
+      );
+      await SendMail(email, htmlParam);
+      Logger.info(
+        `Correo enviado satisfactoriamente - email: ${email} - requestId: ${requestId}`
+      );
+    }
+
+    // 9. Responder siempre con success genérico
     return response.ok(params);
-  } catch (e) {
+  } catch (error) {
+    // Rollback y log de error
+    Logger.error(
+      `Error inesperado en handler FORGOT PASSWORD - requestId: ${requestId} - message: ${error.message}`
+    );
     await trx.rollback();
-    console.log(e);
     return response.ok(params);
   }
 };
 
 const generateTemporaryPassword = (): string => {
-  return crypto.randomBytes(4).toString("hex"); // Genera 8 caracteres hexadecimales
+  return crypto.randomBytes(4).toString("hex"); // 8 caracteres hexadecimales
 };
 
 const resetPasswordMail = async (temporaryPassword: string) => {
@@ -129,15 +199,12 @@ const resetPasswordMail = async (temporaryPassword: string) => {
   html += `        <div class="content">`;
   html += `            <p>Hello,</p>`;
   html += `            <p>You have requested to reset your password. Your temporary password is:</p>`;
-  html += `             <h1>${temporaryPassword}</h1>`;
+  html += `            <h1>${temporaryPassword}</h1>`;
   html += `            <p>Please use this password to log in and reset your password immediately. This temporary password will be available for 24 hours.</p>`;
   html += `            <p>If you did not request this change, you can ignore this email.</p>`;
   html += `            <p>Thank you,</p>`;
   html += `            <p>The Pixel War Team</p>`;
   html += `        </div>`;
-  html += `        <!-- <div class="footer"> -->`;
-  html += `            <!-- <p>&copy; [YEAR] Pixel War. All rights reserved.</p> -->`;
-  html += `        <!-- </div> -->`;
   html += `    </div>`;
   html += `</body>`;
   html += `</html>`;
