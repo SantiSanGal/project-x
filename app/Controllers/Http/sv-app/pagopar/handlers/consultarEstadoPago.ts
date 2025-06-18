@@ -10,7 +10,6 @@ export const consultarEstadoPago = async ({
   request,
   response,
 }: HttpContextContract) => {
-
   let params = {
     data: {},
     notification: {
@@ -43,16 +42,16 @@ export const consultarEstadoPago = async ({
     );
 
     if (data && data.respuesta) {
-      const { resultado } = data
+      const { resultado } = data;
 
       const [
         {
           pagado,
           numero_comprobante_interno,
-          ultimo_mensaje_error,
+          // ultimo_mensaje_error,
           forma_pago,
           fecha_pago,
-          monto,
+          // monto,
           hash_pedido,
           numero_pedido,
           cancelado,
@@ -74,7 +73,7 @@ export const consultarEstadoPago = async ({
           fecha_pago: fecha_pago,
           forma_pago_identificador: forma_pago_identificador,
           updated_at: DateTime.local().toISO(),
-          cancelado: cancelado
+          cancelado: cancelado,
         };
 
         const updatedPedido = await Database.connection("pg")
@@ -90,12 +89,12 @@ export const consultarEstadoPago = async ({
             .where("id_grupo_pixeles", updatedPedido[0].id_grupo_pixeles)
             .update({ id_estado: 2 });
 
-          const pixeles_individuales = await Database.connection('pg')
-            .from('pixeles_individuales')
-            .where('id_grupo_pixeles', updatedPedido[0].id_grupo_pixeles)
+          const pixeles_individuales = await Database.connection("pg")
+            .from("pixeles_individuales")
+            .where("id_grupo_pixeles", updatedPedido[0].id_grupo_pixeles);
 
           if (pagado) {
-            Ws.io.emit('pintar', pixeles_individuales)
+            Ws.io.emit("pintar", pixeles_individuales);
           }
         }
       }

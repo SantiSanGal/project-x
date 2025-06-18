@@ -143,7 +143,10 @@ const logDir = join(__dirname, "..", "logs");
 
 // 2) Stream rotatorio (igual que antes)
 const fileStream = rfs.createStream(
-  (time, index) => {
+  (
+    time
+    // index
+  ) => {
     if (!time) return "app.log";
     const d = new Date(time);
     const yyyy = d.getFullYear();
