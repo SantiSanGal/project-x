@@ -1,0 +1,190 @@
+{"level":10,"time":"2025-06-18T16:09:56.239-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:09:56.307-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:09:56.313-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:09:56.564-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:09:56.577-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:09:56.585-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:09:56.587-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:09:56.591-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:09:56.591-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:09:56.660-04:00","pid":11092,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:10:20.455-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:10:20.500-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:10:20.505-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:10:20.690-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:10:20.700-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:10:20.706-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:10:20.707-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:10:20.710-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:10:20.711-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:10:20.772-04:00","pid":17604,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:10:43.773-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:10:43.819-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:10:43.825-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:10:44.048-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:10:44.060-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:10:44.066-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:10:44.068-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:10:44.071-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:10:44.072-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:10:44.141-04:00","pid":72716,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:10:47.701-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:10:47.773-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:10:47.779-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:10:47.974-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:10:47.985-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:10:47.991-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:10:47.992-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:10:47.996-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:10:47.996-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:10:48.052-04:00","pid":69388,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:00.530-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:00.577-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:00.583-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:00.777-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:00.789-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:00.794-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:00.796-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:00.799-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:00.800-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:00.860-04:00","pid":52272,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:07.112-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:07.157-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:07.163-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:07.351-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:07.362-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:07.368-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:07.369-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:07.372-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:07.373-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:07.426-04:00","pid":6336,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:09.205-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:09.257-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:09.263-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:09.465-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:09.475-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:09.481-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:09.482-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:09.486-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:09.487-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:09.544-04:00","pid":51208,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:12.303-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:12.356-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:12.362-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:12.555-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:12.565-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:12.570-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:12.572-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:12.575-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:12.575-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:12.629-04:00","pid":58904,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:13.877-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:13.927-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:13.933-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:14.125-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:14.135-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:14.140-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:14.141-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:14.144-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:14.144-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:14.199-04:00","pid":45588,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:18.954-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:19.001-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:19.006-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:19.200-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:19.211-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:19.218-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:19.219-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:19.223-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:19.223-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:19.277-04:00","pid":17216,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:22.855-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:22.903-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:22.909-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:23.110-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:23.123-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:23.129-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:23.130-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:23.133-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:23.134-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:23.188-04:00","pid":67576,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:27.491-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:27.536-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:27.541-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:27.736-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:27.746-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:27.751-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:27.752-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:27.755-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:27.756-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:27.810-04:00","pid":35688,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:29.166-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:29.213-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:29.218-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:29.418-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:29.428-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:29.434-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:29.435-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:29.438-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:29.438-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:29.491-04:00","pid":53684,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:35.310-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:35.358-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:35.364-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:35.563-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:35.572-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:35.578-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:35.579-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:35.582-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:35.582-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:35.635-04:00","pid":47812,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:39.315-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:39.362-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:39.367-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:39.564-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:39.575-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:39.581-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:39.582-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:39.585-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:39.586-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:39.642-04:00","pid":32672,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:41.484-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:41.534-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:41.540-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:41.740-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:41.749-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:41.754-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:41.756-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:41.758-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:41.759-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:41.816-04:00","pid":11204,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:47.139-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:47.194-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:47.200-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:47.413-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:47.424-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:47.431-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:47.433-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:47.436-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:47.437-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:47.502-04:00","pid":41268,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:48.511-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:48.557-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:48.563-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:48.755-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:48.766-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:48.771-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:48.772-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:48.776-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:48.776-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:48.829-04:00","pid":26468,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
+{"level":10,"time":"2025-06-18T16:11:57.815-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","msg":"registering providers"}
+{"level":10,"time":"2025-06-18T16:11:57.875-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","msg":"booting providers"}
+{"level":10,"time":"2025-06-18T16:11:57.882-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","route":"/uploads/*","name":"drive.local.serve","msg":"registering drive route"}
+{"level":10,"time":"2025-06-18T16:11:58.093-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","connection":"pg","msg":"adding new connection to the manager"}
+{"level":10,"time":"2025-06-18T16:11:58.103-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/routes","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:58.109-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","file":"./start/kernel","optional":false,"environment":["web","console","test","repl"],"msg":"file:preload"}
+{"level":10,"time":"2025-06-18T16:11:58.110-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","msg":"optimizing http server handler"}
+{"level":10,"time":"2025-06-18T16:11:58.113-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","msg":"binding App/Exceptions/Handler exception handler"}
+{"level":10,"time":"2025-06-18T16:11:58.114-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","msg":"executing providers ready hook"}
+{"level":30,"time":"2025-06-18T16:11:58.168-04:00","pid":1464,"hostname":"pmatdes35","name":"proyecto_x","msg":"started server on 0.0.0.0:3333"}
