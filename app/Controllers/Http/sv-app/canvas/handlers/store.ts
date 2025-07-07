@@ -10,7 +10,7 @@ import path from "path";
 import fs from "fs";
 import Logger from "@ioc:Adonis/Core/Logger";
 
-const montoTotal = "1";
+const montoTotal = "25";
 
 export const store = async ({
   request,
@@ -55,7 +55,7 @@ export const store = async ({
       return response.badRequest({ message: "Pixeles inválidos" });
     }
 
-    // 2. Usuario autenticado
+    /* ------------------------- 2 - Usuario Autenticado ------------------------ */
     const { user } = auth;
 
     if (!user) {
@@ -72,7 +72,7 @@ export const store = async ({
 
     Logger.info(`Usuario autenticado - userId: ${user.id}`);
 
-    // 3. Parseo de refer_code
+    /* ------------------------- 3 - Parse de refer_code ------------------------ */
     let referCode: string | null = null;
     if (refer_code) {
       try {
@@ -94,7 +94,7 @@ export const store = async ({
       Logger.trace(`No se proporcionó refer_code`);
     }
 
-    // 4. Detección de autorreferencia
+    /* ------------------- 4 - Detectar si es Auto-referencia ------------------ */
     let isSelfReferral = false;
     if (referCode) {
       Logger.trace(
@@ -114,13 +114,13 @@ export const store = async ({
       }
     }
 
-    // 5. Preparar nueva expiración
+    /* ---------------------- 5 - Preparar nueva expiración --------------------- */
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
     Logger.trace(
       `Fecha de expiración calculada - newExpiration: ${newExpiration}`
     );
 
-    // 6. Buscar grupo existente
+    /* ----------------------- 6 - Buscar grupo existente ----------------------- */
     Logger.trace(
       `Buscando grupo existente en DB - grupo_pixeles: ${JSON.stringify(
         grupo_pixeles
@@ -141,7 +141,7 @@ export const store = async ({
       grupoId = grupoExistente.id_grupo_pixeles;
       Logger.info(`Grupo existente encontrado - grupoId: ${grupoId}`);
 
-      // 6.1. Verificar expiración
+      /* ----------------------- 6.1 - Verificar expiración ----------------------- */
       const fechaExpiracionGrupo = DateTime.fromJSDate(
         new Date(grupoExistente.fecha_expiracion)
       );
@@ -161,7 +161,7 @@ export const store = async ({
         return response.json(params);
       }
 
-      // 6.2. Renovar expiración y actualizar colores
+      /* -------------- 6.2 - Renovar Expiración y actualizar colores ------------- */
       Logger.info(
         `Grupo expirado, renovando fechas y colores - grupoId: ${grupoId}`
       );
@@ -220,7 +220,7 @@ export const store = async ({
         message: "Grupo expirado actualizado correctamente.",
       };
     } else {
-      // 7. Crear nuevo grupo
+      /* -------------------------- 7. Crear nuevo Grupo -------------------------- */
       Logger.info(`No existe grupo, creando uno nuevo`);
       const grupoInsert = {
         link_adjunta: grupo_pixeles.link,
@@ -278,7 +278,7 @@ export const store = async ({
       };
     }
 
-    // 8. Insertar pedido
+    /* --------------------------- 8 - Insertar pedido -------------------------- */
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: user.id,
@@ -298,7 +298,7 @@ export const store = async ({
       .returning("id_pedido");
     Logger.info(`Pedido insertado con ID - id_pedido: ${id_pedido}`);
 
-    // 9. Generar imagen
+    /* --------------------------- 9 - Generar imagen --------------------------- */
     Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
     const xs = pixeles.map((p: any) => p.coordenada_x);
     const ys = pixeles.map((p: any) => p.coordenada_y);
@@ -356,7 +356,7 @@ export const store = async ({
     fs.writeFileSync(imagePath, buffer);
     Logger.info(`Imagen guardada en disco - imagePath: ${imagePath}`);
 
-    // 10. Preparar y llamar a Pagopar
+    /* -------------------- 10 - Preparar y llamar a Pagopar -------------------- */
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     if (!privateToken) {
       Logger.error(`PAGOPAR_TOKEN_PRIVADO no definido en Env`);
@@ -397,7 +397,7 @@ export const store = async ({
           url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
           descripcion: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           id_producto: "1",
-          precio_total: "1",
+          precio_total: montoTotal,
         },
       ],
       id_pedido_comercio: id_pedido.toString(),
@@ -415,7 +415,7 @@ export const store = async ({
       "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
-    );    
+    );
 
     Logger.info(
       `Respuesta recibida de Pagopar - status: ${
