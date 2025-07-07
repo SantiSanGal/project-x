@@ -1,14 +1,14 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
-import Env from "@ioc:Adonis/Core/Env";
+import Logger from "@ioc:Adonis/Core/Logger";
 import { createCanvas } from "canvas";
+import Env from "@ioc:Adonis/Core/Env";
 import Ws from "App/Services/Ws";
 import { DateTime } from "luxon";
 import crypto from "crypto";
 import axios from "axios";
 import path from "path";
 import fs from "fs";
-import Logger from "@ioc:Adonis/Core/Logger";
 
 const montoTotal = "25";
 
@@ -300,9 +300,6 @@ export const store = async ({
 
     /* --------------------------- 9 - Generar imagen --------------------------- */
     Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
-
-    // --- INICIO: CÓDIGO MODIFICADO ---
-
     // Define el tamaño de cada bloque de color. Cada pixel original será un cuadrado de 100x100.
     const pixelBlockSize = 100;
 
@@ -357,8 +354,6 @@ export const store = async ({
       );
     });
 
-    // --- FIN: CÓDIGO MODIFICADO ---
-
     Logger.trace(`Canvas pintado - grupoId: ${grupoId}`);
 
     const hash = crypto
@@ -386,10 +381,16 @@ export const store = async ({
       );
     }
 
+    const [justName] = fileName.split(".");
     const imagePath = path.join(individualesDir, fileName);
     const buffer = canvas.toBuffer("image/png");
     fs.writeFileSync(imagePath, buffer);
     Logger.info(`Imagen guardada en disco - imagePath: ${imagePath}`);
+
+    await trx
+      .from("grupos_pixeles")
+      .where("id_grupo_pixeles", grupoId)
+      .update({ img: `${Env.get("URL_BACK")}/canvas/img/${justName}` });
 
     /* -------------------- 10 - Preparar y llamar a Pagopar -------------------- */
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
@@ -408,8 +409,6 @@ export const store = async ({
       .createHash("sha1")
       .update(privateToken + id_pedido.toString() + montoTotal)
       .digest("hex");
-
-    const [justName] = fileName.split(".");
 
     const pagoparPayload = {
       token: tokenForPagopar,
@@ -495,7 +494,7 @@ export const store = async ({
       throw new Error("Error al generar pedido en Pagopar");
     }
 
-    // 11. Finalizar transacción y notificar
+    /* ----------------- 11 - Finalizar transacción y notificar ----------------- */
     await trx.commit();
     Logger.info(`Transacción confirmada (commit) - pedidoId: ${id_pedido}`);
     Ws.io.emit("nuevo_registro");

@@ -41,6 +41,7 @@ export const list = async ({ response, auth }: HttpContextContract) => {
       .select([
         "gp.id_grupo_pixeles as grupo_pixeles_id",
         "gp.link_adjunta as link_adjunta",
+        "gp.img as link_image",
         Database.raw(`
           COALESCE(
             json_agg(

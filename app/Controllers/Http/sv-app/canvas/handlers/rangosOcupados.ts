@@ -7,7 +7,7 @@ export const rangosOcupados = async ({
   request,
   response,
 }: HttpContextContract) => {
-  // Generar un ID único para correlacionar logs de esta petición
+  // Generar un ID único para co-relacionar logs de esta petición
   const requestId = crypto.randomBytes(8).toString("hex");
   Logger.info(
     `-------- Inicio handler Rangos Ocupados - requestId: ${requestId} --------`
