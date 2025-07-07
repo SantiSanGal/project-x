@@ -402,7 +402,7 @@ export const store = async ({
       ],
       id_pedido_comercio: id_pedido.toString(),
       descripcion_resumen: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
-      forma_pago: 9,
+      forma_pago: 26,
     };
 
     Logger.trace(
@@ -412,18 +412,16 @@ export const store = async ({
     Logger.info(`Enviando petición a Pagopar`);
 
     const pagoparResponse = await axios.post(
-      "https://api.pagopar.com/api/comercios/2.0/iniciar-transacción-divisa",
+      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
-    );
+    );    
 
     Logger.info(
       `Respuesta recibida de Pagopar - status: ${
         pagoparResponse.status
       } - data: ${JSON.stringify(pagoparResponse.data)}`
     );
-
-    console.log("pagoparResponse", pagoparResponse);
 
     if (
       pagoparResponse.data.respuesta &&
