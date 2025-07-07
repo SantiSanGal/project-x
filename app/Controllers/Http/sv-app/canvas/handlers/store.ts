@@ -300,30 +300,65 @@ export const store = async ({
 
     /* --------------------------- 9 - Generar imagen --------------------------- */
     Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
+
+    // --- INICIO: CÓDIGO MODIFICADO ---
+
+    // Define el tamaño de cada bloque de color. Cada pixel original será un cuadrado de 100x100.
+    const pixelBlockSize = 100;
+
+    // Calcula las dimensiones base de la grilla de píxeles (ej: 5x5)
     const xs = pixeles.map((p: any) => p.coordenada_x);
     const ys = pixeles.map((p: any) => p.coordenada_y);
     const minX = Math.min(...xs);
     const minY = Math.min(...ys);
     const maxX = Math.max(...xs);
     const maxY = Math.max(...ys);
-    const width = maxX - minX + 1;
-    const height = maxY - minY + 1;
-    Logger.trace(`Dimensiones canvas - width: ${width} - height: ${height}`);
 
-    const canvas = createCanvas(width, height);
+    const baseWidth = maxX - minX + 1;
+    const baseHeight = maxY - minY + 1;
+
+    // Calcula las dimensiones finales del canvas multiplicando por el tamaño del bloque
+    const canvasWidth = baseWidth * pixelBlockSize;
+    const canvasHeight = baseHeight * pixelBlockSize;
+
+    Logger.trace(
+      `Dimensiones base de la grilla - width: ${baseWidth} - height: ${baseHeight}`
+    );
+    Logger.trace(
+      `Dimensiones canvas final - width: ${canvasWidth} - height: ${canvasHeight}`
+    );
+
+    // Crea el canvas con las nuevas dimensiones
+    const canvas = createCanvas(canvasWidth, canvasHeight);
     const ctx = canvas.getContext("2d");
+
+    // Itera sobre cada pixel para dibujarlo como un bloque grande
     pixeles.forEach((pixel: any) => {
+      // Calcula la posición relativa del bloque en la grilla (ej: 0,0, 1,0, etc.)
       const x = pixel.coordenada_x - minX;
       const y = pixel.coordenada_y - minY;
+
+      // Valida el formato del color
       if (!/^#[0-9A-F]{6}$/i.test(pixel.color)) {
         Logger.warn(
           `Color inválido en pixel, se omite - ${JSON.stringify(pixel)}`
         );
         return;
       }
+
       ctx.fillStyle = pixel.color;
-      ctx.fillRect(x, y, 1, 1);
+
+      // Dibuja un rectángulo grande (100x100) en la posición escalada correspondiente
+      ctx.fillRect(
+        x * pixelBlockSize,
+        y * pixelBlockSize,
+        pixelBlockSize,
+        pixelBlockSize
+      );
     });
+
+    // --- FIN: CÓDIGO MODIFICADO ---
+
     Logger.trace(`Canvas pintado - grupoId: ${grupoId}`);
 
     const hash = crypto
