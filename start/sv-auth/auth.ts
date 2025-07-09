@@ -5,5 +5,6 @@ Route.group(() => {
   Route.post("/logout", "sv-auth/controller.logout").middleware("auth");
   Route.post("/register", "sv-auth/controller.register");
   Route.post("/forgot-password", "sv-auth/controller.forgotPassword");
-  Route.post('/googleAuth', 'sv-auth/controller.googleAuth');
+  Route.post('/googleAuth', 'sv-auth/controller.googleAuth')
 }).prefix("/auth");
+

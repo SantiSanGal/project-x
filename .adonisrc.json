@@ -25,7 +25,8 @@
     "@adonisjs/lucid",
     "@adonisjs/auth",
     "adonis5-scheduler",
-    "@adonisjs/mail"
+    "@adonisjs/mail",
+    "@adonisjs/ally"
   ],
   "aceProviders": [
     "@adonisjs/repl"
