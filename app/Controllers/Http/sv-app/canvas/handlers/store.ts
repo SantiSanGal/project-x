@@ -209,8 +209,7 @@ export const store = async ({
         ]);
       }
       Logger.info(
-        `Puntos insertados (grupo expirado) - grupoId: ${grupoId} - referCode: ${
-          referCode ?? "null"
+        `Puntos insertados (grupo expirado) - grupoId: ${grupoId} - referCode: ${referCode ?? "null"
         }`
       );
 
@@ -266,8 +265,7 @@ export const store = async ({
         ]);
       }
       Logger.info(
-        `Puntos insertados (nuevo grupo) - grupoId: ${grupoId} - referCode: ${
-          referCode ?? "null"
+        `Puntos insertados (nuevo grupo) - grupoId: ${grupoId} - referCode: ${referCode ?? "null"
         } - isSelfReferral: ${isSelfReferral}`
       );
 
@@ -371,6 +369,7 @@ export const store = async ({
       "public",
       "individuales"
     );
+
     if (!fs.existsSync(individualesDir)) {
       Logger.trace(
         `Directorio de imágenes no existe, creando - individualesDir: ${individualesDir}`
@@ -452,8 +451,7 @@ export const store = async ({
     );
 
     Logger.info(
-      `Respuesta recibida de Pagopar - status: ${
-        pagoparResponse.status
+      `Respuesta recibida de Pagopar - status: ${pagoparResponse.status
       } - data: ${JSON.stringify(pagoparResponse.data)}`
     );
 

@@ -1,4 +1,4 @@
-import { forgotPassword, login, logout, register } from "./handlers";
+import { forgotPassword, googleAuth, login, logout, register } from "./handlers";
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 
 export default class Controller {
@@ -16,5 +16,9 @@ export default class Controller {
 
   public async forgotPassword(params: HttpContextContract) {
     return forgotPassword(params);
+  }
+
+  public async googleAuth(params: HttpContextContract) {
+    return googleAuth(params)
   }
 }
