@@ -25,7 +25,7 @@ export const register = async ({ request, response }: HttpContextContract) => {
     // 1. Validar payload
     Logger.trace(`Validando payload de registro - requestId: ${requestId}`);
     const {
-      username,
+      username: rawUserName,
       password,
       name,
       last_name,
@@ -33,6 +33,21 @@ export const register = async ({ request, response }: HttpContextContract) => {
       // document,
       // type_document,
     } = await request.validate(resgisterValidator);
+
+    const username = (rawUserName || "").toLowerCase();
+
+    if (!/^[a-z0-9._-]{5,30}$/.test(username)) {
+      return response.badRequest({
+        message: {
+          errors: [
+            {
+              message: "Invalid username it must be into lowercase",
+            },
+          ],
+        },
+      });
+    }
+
     Logger.info(
       `Payload validado - username: ${username} - email: ${email} - requestId: ${requestId}`
     );

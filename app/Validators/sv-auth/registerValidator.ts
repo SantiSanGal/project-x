@@ -25,6 +25,7 @@ export default class resgisterValidator {
       rules.required(),
       rules.minLength(5),
       rules.maxLength(25),
+      rules.regex(/^[a-z0-9._-]+$/),
       rules.unique({
         table: "users",
         column: "username",

@@ -8,7 +8,7 @@ export const csp: ShieldConfig["csp"] = {
 
 export const csrf: ShieldConfig["csrf"] = {
   enabled: false,
-  exceptRoutes: [],
+  exceptRoutes: ["/auth/googleAuth"],
   enableXsrfCookie: true,
   methods: ["POST", "PUT", "PATCH", "DELETE"],
 };
