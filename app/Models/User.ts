@@ -1,39 +1,50 @@
-import { DateTime } from 'luxon'
-import Hash from '@ioc:Adonis/Core/Hash'
-import { column, beforeSave, BaseModel } from '@ioc:Adonis/Lucid/Orm'
+import { DateTime } from "luxon";
+import { BaseModel, column } from "@ioc:Adonis/Lucid/Orm";
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
-  public id: number
+  public id: number;
 
   @column()
-  public username: string
+  public username: string;
 
   @column()
-  public name: string
+  public name: string;
+
+  @column({ columnName: "last_name" })
+  public lastName: string;
 
   @column()
-  public lastName: string
-
-  @column()
-  public email: string
+  public email: string;
 
   @column({ serializeAs: null })
-  public password: string
+  public password?: string | null;
+
+  @column({ columnName: "remember_me_token", serializeAs: null })
+  public rememberMeToken?: string | null;
 
   @column()
-  public rememberMeToken: string | null
+  public document?: string | null;
 
-  @column.dateTime({ autoCreate: true })
-  public createdAt: DateTime
+  @column({ columnName: "type_document" })
+  public typeDocument?: string | null;
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  public updatedAt: DateTime
+  @column({ columnName: "accepted_terms_and_conditions" })
+  public acceptedTermsAndConditions: boolean;
 
-  @beforeSave()
-  public static async hashPassword (user: User) {
-    if (user.$dirty.password) {
-      user.password = await Hash.make(user.password)
-    }
-  }
+  @column({ columnName: "oauth_provider_id" })
+  public oauthProviderId?: string | null;
+
+  @column({ columnName: "oauth_provider_name" })
+  public oauthProviderName?: string | null;
+
+  @column.dateTime({ columnName: "created_at", autoCreate: true })
+  public createdAt: DateTime;
+
+  @column.dateTime({
+    columnName: "updated_at",
+    autoCreate: true,
+    autoUpdate: true,
+  })
+  public updatedAt: DateTime;
 }
