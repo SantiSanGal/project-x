@@ -1,10 +1,7 @@
 // contracts/auth.ts
-import User from "App/Models/User";
-import {
-  OATGuardContract, // no se utiliza, puedo borrar?
+import type User from "App/Models/User";
+import type {
   OATGuardConfig,
-  OATClientContract, // no se utiliza, puedo borrar?
-  LucidProviderContract, // no se utiliza, puedo borrar?
   LucidProviderConfig,
 } from "@ioc:Adonis/Addons/Auth";
 
@@ -20,7 +17,7 @@ declare module "@ioc:Adonis/Addons/Auth" {
     api: {
       implementation: OATGuardContract<"user", "api">;
       config: OATGuardConfig<"user">;
-      client: OATClientContract<"user", "api">;
+      client: OATClientContract<"user">;
     };
   }
 }

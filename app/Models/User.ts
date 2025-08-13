@@ -1,5 +1,7 @@
+// app/Models/User.ts
 import { DateTime } from "luxon";
-import { BaseModel, column } from "@ioc:Adonis/Lucid/Orm";
+import Hash from "@ioc:Adonis/Core/Hash";
+import { BaseModel, column, beforeSave } from "@ioc:Adonis/Lucid/Orm";
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -23,15 +25,6 @@ export default class User extends BaseModel {
   @column({ columnName: "remember_me_token", serializeAs: null })
   public rememberMeToken?: string | null;
 
-  @column()
-  public document?: string | null;
-
-  @column({ columnName: "type_document" })
-  public typeDocument?: string | null;
-
-  @column({ columnName: "accepted_terms_and_conditions" })
-  public acceptedTermsAndConditions: boolean;
-
   @column({ columnName: "oauth_provider_id" })
   public oauthProviderId?: string | null;
 
@@ -47,4 +40,11 @@ export default class User extends BaseModel {
     autoUpdate: true,
   })
   public updatedAt: DateTime;
+
+  @beforeSave()
+  public static async hashPassword(user: User) {
+    if (user.$dirty.password && user.password) {
+      user.password = await Hash.make(user.password);
+    }
+  }
 }
