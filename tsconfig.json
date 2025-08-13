@@ -33,7 +33,8 @@
       "@adonisjs/auth",
       "adonis5-scheduler",
       "@adonisjs/mail",
-      "@adonisjs/ally"
+      "@adonisjs/ally",
+      "@adonisjs/shield"
     ]
   }
 }
