@@ -37,9 +37,9 @@ export default class resgisterValidator {
       rules.maxLength(255),
     ]),
     // document: schema.string({ trim: true }, [
-    //     rules.required(),
-    //     rules.minLength(6),
-    //     rules.maxLength(255)
+    //   rules.required(),
+    //   rules.minLength(6),
+    //   rules.maxLength(255)
     // ]),
     // type_document: schema.string({ trim: true }, [ //CI, DNI, passport
     //     rules.required()

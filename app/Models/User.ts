@@ -17,6 +17,9 @@ export default class User extends BaseModel {
   public lastName: string;
 
   @column()
+  public document: string;
+
+  @column()
   public email: string;
 
   @column({ serializeAs: null })

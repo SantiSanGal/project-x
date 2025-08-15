@@ -5,8 +5,9 @@ import Hash from "@ioc:Adonis/Core/Hash";
 import { DateTime } from "luxon";
 import Logger from "@ioc:Adonis/Core/Logger";
 import crypto from "crypto";
+import User from "App/Models/User";
 
-export const register = async ({ request, response }: HttpContextContract) => {
+export const register = async ({ request, response, auth }: HttpContextContract) => {
   // Generar un ID de petición para correlacionar logs
   const requestId = crypto.randomBytes(8).toString("hex");
   Logger.info(
@@ -73,6 +74,7 @@ export const register = async ({ request, response }: HttpContextContract) => {
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
     };
+
     Logger.trace(
       `Parámetros de inserción preparados (sin contraseña en texto claro) - username: ${username} - requestId: ${requestId}`
     );
@@ -81,16 +83,34 @@ export const register = async ({ request, response }: HttpContextContract) => {
     Logger.info(
       `Insertando nuevo usuario en DB - username: ${username} - requestId: ${requestId}`
     );
-    await Database.connection("pg").table("users").insert(insertParams);
+    const [inserted] = await Database.connection("pg").table("users").insert(insertParams).returning('id');
     Logger.info(
       `Usuario registrado correctamente - username: ${username} - requestId: ${requestId}`
     );
 
-    // 5. Responder éxito
-    params.notification.state = true;
-    params.notification.type = "success";
-    params.notification.message = "Usuario Registrado Correctamente";
-    return response.json(params);
+    const user = await User.findOrFail(inserted.id);
+    const apiToken = await auth.use("api").generate(user, {
+      name: "Opaque Access Token",
+      expiresIn: "1 days", // puedes cambiarlo a '7days', '1year', etc.
+    });
+
+    return response.ok({
+      notification: { state: true, type: "success", message: "Register OK" },
+      data: {
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          last_name: user.lastName,
+          email: user.email,
+        },
+        token: {
+          type: apiToken.type, // 'bearer'
+          token: apiToken.token, // <-- el valor que envías en Authorization
+          expiresAt: apiToken.expiresAt,
+        },
+      },
+    });
   } catch (e) {
     // Manejo de errores de validación
     if (e.messages?.errors) {

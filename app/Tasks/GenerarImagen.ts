@@ -34,7 +34,7 @@ export default class GenerarImagen extends BaseTask {
       fs.mkdirSync(previousImagesPath);
     }
 
-    const canvas = createCanvas(2000, 1000)
+    const canvas = createCanvas(1000, 1000)
     const ctx = canvas.getContext('2d')
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, canvas.width, canvas.height)

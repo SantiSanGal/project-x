@@ -21,8 +21,6 @@ export const postReportarGrupoPixeles = async ({
     const { comentario } = request.all();
     const idGrupoPixeles = request.param("idGrupoPixeles");
 
-    console.log("idGrupoPixeles", idGrupoPixeles);
-
     const userId = auth.user?.id;
     if (userId === undefined) {
       await trx.rollback();
