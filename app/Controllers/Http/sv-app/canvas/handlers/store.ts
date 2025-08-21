@@ -422,7 +422,7 @@ export const store = async ({
       public_key: publicToken,
       monto_total: montoTotal,
       moneda: "USD",
-      comision_transladada_comprador: true,
+      comision_transladada_comprador: false,
       compras_items: [
         {
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
