@@ -1,9 +1,4 @@
-// contracts/auth.ts
 import type User from "App/Models/User";
-import type {
-  OATGuardConfig,
-  LucidProviderConfig,
-} from "@ioc:Adonis/Addons/Auth";
 
 declare module "@ioc:Adonis/Addons/Auth" {
   interface ProvidersList {
