@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node ace serve --watch",
-    "build": "node ace build --production",
+    "build": "node ace build --production && cp ./.env ./build && pm2 reload all && pm2 list",
     "start": "node server.js",
     "test": "node ace test"
   },
