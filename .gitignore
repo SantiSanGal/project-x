@@ -8,4 +8,4 @@ tmp
 tokenes.txt
 .idea
 logs
-copy.env
+copy.env/logs/
