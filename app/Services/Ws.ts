@@ -1,3 +1,4 @@
+// app/Services/Ws.ts
 import { Server } from "socket.io";
 import AdonisServer from "@ioc:Adonis/Core/Server";
 
@@ -12,14 +13,15 @@ class Ws {
     this.io = new Server(AdonisServer.instance!, {
       cors: {
         origin: [
-          "https://superapi.tatakaepixel.com",
           "https://tatakaepixel.com",
-          "http://localhost:3000", // si usas otro puerto
+          "https://www.tatakaepixel.com",
+          "http://localhost:3000",
+          "http://localhost:5173",
         ],
         methods: ["GET", "POST"],
         credentials: true,
       },
-      // path: "/socket.io", // (opcional, default)
+      path: "/socket.io",
     });
   }
 }
