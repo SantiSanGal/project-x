@@ -9,3 +9,5 @@ tokenes.txt
 .idea
 logs
 copy.env/logs/
+copy.env
+.env
