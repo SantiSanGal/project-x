@@ -6,15 +6,21 @@ class Ws {
   private booted = false;
 
   public boot() {
-    /**
-     * Ignore multiple calls to the boot method
-     */
-    if (this.booted) {
-      return;
-    }
-
+    if (this.booted) return;
     this.booted = true;
-    this.io = new Server(AdonisServer.instance!);
+
+    this.io = new Server(AdonisServer.instance!, {
+      cors: {
+        origin: [
+          "https://superapi.tatakaepixel.com",
+          "https://tatakaepixel.com",
+          "http://localhost:3000", // si usas otro puerto
+        ],
+        methods: ["GET", "POST"],
+        credentials: true,
+      },
+      // path: "/socket.io", // (opcional, default)
+    });
   }
 }
 
