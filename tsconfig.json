@@ -1,29 +1,20 @@
 {
   "extends": "adonis-preset-ts/tsconfig.json",
-  "include": [
-    "**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "build"
-  ],
+  "include": ["**/*"],
+  "exclude": ["node_modules", "build"],
   "compilerOptions": {
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "lib": ["ES2022"],
     "outDir": "build",
     "rootDir": "./",
     "sourceMap": true,
     "paths": {
-      "App/*": [
-        "./app/*"
-      ],
-      "Config/*": [
-        "./config/*"
-      ],
-      "Contracts/*": [
-        "./contracts/*"
-      ],
-      "Database/*": [
-        "./database/*"
-      ]
+      "App/*": ["./app/*"],
+      "Config/*": ["./config/*"],
+      "Contracts/*": ["./contracts/*"],
+      "Database/*": ["./database/*"]
     },
     "types": [
       "@adonisjs/core",
@@ -34,7 +25,8 @@
       "adonis5-scheduler",
       "@adonisjs/mail",
       "@adonisjs/ally",
-      "@adonisjs/shield"
+      "@adonisjs/shield",
+      "node"
     ]
   }
 }
