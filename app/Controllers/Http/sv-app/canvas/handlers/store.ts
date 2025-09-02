@@ -1,14 +1,11 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
 import Logger from "@ioc:Adonis/Core/Logger";
-import { createCanvas } from "canvas";
 import Env from "@ioc:Adonis/Core/Env";
 import Ws from "App/Services/Ws";
 import { DateTime } from "luxon";
 import crypto from "crypto";
 import axios from "axios";
-import path from "path";
-import fs from "fs";
 
 const montoTotal = "100000";
 
@@ -72,55 +69,13 @@ export const store = async ({
 
     Logger.info(`Usuario autenticado - userId: ${user.id}`);
 
-    /* ------------------------- 3 - Parse de refer_code ------------------------ */
-    // let referCode: string | null = null;
-    // if (refer_code) {
-    //   try {
-    //     const parts = refer_code.split("-");
-    //     if (parts.length < 2) {
-    //       Logger.warn(
-    //         `Formato de refer_code inesperado - refer_code: ${refer_code}`
-    //       );
-    //     } else {
-    //       referCode = parts[1];
-    //       Logger.trace(`refer_code parseado - referCode: ${referCode}`);
-    //     }
-    //   } catch (err: any) {
-    //     Logger.error(
-    //       `Error al parsear refer_code - refer_code: ${refer_code} - error: ${err.message}`
-    //     );
-    //   }
-    // } else {
-    //   Logger.trace(`No se proporcionó refer_code`);
-    // }
-
-    /* ------------------- 4 - Detectar si es Auto-referencia ------------------ */
-    // let isSelfReferral = false;
-    // if (referCode) {
-    //   Logger.trace(
-    //     `Buscando pedido referido existente - referCode: ${referCode}`
-    //   );
-    //   const pedidoReferido = await trx
-    //     .from("pedidos")
-    //     .select("id_usuario")
-    //     .where("id_grupo_pixeles", referCode)
-    //     .first();
-
-    //   if (pedidoReferido?.id_usuario === user.id) {
-    //     isSelfReferral = true;
-    //     Logger.trace(
-    //       `Autorreferencia detectada, se ignorará referCode - userId: ${user.id} - referCode: ${referCode}`
-    //     );
-    //   }
-    // }
-
-    /* ---------------------- 5 - Preparar nueva expiración --------------------- */
+    /* ---------------------- 3 - Preparar nueva expiración --------------------- */
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
     Logger.trace(
       `Fecha de expiración calculada - newExpiration: ${newExpiration}`
     );
 
-    /* ----------------------- 6 - Buscar grupo existente ----------------------- */
+    /* ----------------------- 4 - Buscar grupo existente ----------------------- */
     Logger.trace(
       `Buscando grupo existente en DB - grupo_pixeles: ${JSON.stringify(
         grupo_pixeles
@@ -142,7 +97,7 @@ export const store = async ({
       grupoId = grupoExistente.id_grupo_pixeles;
       Logger.info(`Grupo existente encontrado - grupoId: ${grupoId}`);
 
-      /* ----------------------- 6.1 - Verificar expiración ----------------------- */
+      /* ----------------------- 4.1 - Verificar expiración ----------------------- */
       const fechaExpiracionGrupo = DateTime.fromJSDate(
         new Date(grupoExistente.fecha_expiracion)
       );
@@ -162,7 +117,7 @@ export const store = async ({
         return response.json(params);
       }
 
-      /* -------------- 6.2 - Renovar Expiración y actualizar colores ------------- */
+      /* -------------- 4.2 - Renovar Expiración y actualizar colores ------------- */
       Logger.info(
         `Grupo expirado, renovando fechas y colores - grupoId: ${grupoId}`
       );
@@ -195,26 +150,6 @@ export const store = async ({
         `Registros de puntos anteriores eliminados - grupoId: ${grupoId}`
       );
 
-      // if (!referCode || isSelfReferral) {
-      //   await trx.table("puntos").insert({
-      //     id_grupo_pixeles: grupoId,
-      //     id_grupo_pixeles_referido: null,
-      //   });
-      // } else {
-      //   await trx.table("puntos").insert([
-      //     { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
-      //     {
-      //       id_grupo_pixeles: grupoId,
-      //       id_grupo_pixeles_referido: referCode!,
-      //     },
-      //   ]);
-      // }
-      // Logger.info(
-      //   `Puntos insertados (grupo expirado) - grupoId: ${grupoId} - referCode: ${
-      //     referCode ?? "null"
-      //   }`
-      // );
-
       Logger.trace(
         `Grupo expirado actualizado correctamente - grupoId: ${grupoId}`
       );
@@ -225,7 +160,7 @@ export const store = async ({
         message: "Grupo expirado actualizado correctamente.",
       };
     } else {
-      /* -------------------------- 7. Crear nuevo Grupo -------------------------- */
+      /* -------------------------- 5. Crear nuevo Grupo -------------------------- */
       Logger.info(`No existe grupo, creando uno nuevo`);
       const grupoInsert = {
         link_adjunta: grupo_pixeles.link,
@@ -256,26 +191,6 @@ export const store = async ({
         `Píxeles individuales insertados - grupoId: ${grupoId} - count: ${pixelesData.length}`
       );
 
-      // if (!referCode || isSelfReferral) {
-      //   await trx.table("puntos").insert({
-      //     id_grupo_pixeles: grupoId,
-      //     id_grupo_pixeles_referido: null,
-      //   });
-      // } else {
-      //   await trx.table("puntos").insert([
-      //     { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
-      //     {
-      //       id_grupo_pixeles: grupoId,
-      //       id_grupo_pixeles_referido: referCode,
-      //     },
-      //   ]);
-      // }
-      // Logger.info(
-      //   `Puntos insertados (nuevo grupo) - grupoId: ${grupoId} - referCode: ${
-      //     referCode ?? "null"
-      //   } - isSelfReferral: ${isSelfReferral}`
-      // );
-
       params.notification = {
         state: true,
         type: "success",
@@ -283,7 +198,7 @@ export const store = async ({
       };
     }
 
-    /* --------------------------- 8 - Insertar pedido -------------------------- */
+    /* --------------------------- 6 - Insertar pedido -------------------------- */
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: user.id,
@@ -303,102 +218,7 @@ export const store = async ({
       .returning("id_pedido");
     Logger.info(`Pedido insertado con ID - id_pedido: ${id_pedido}`);
 
-    /* --------------------------- 9 - Generar imagen --------------------------- */
-    // Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
-    // // Define el tamaño de cada bloque de color. Cada pixel original será un cuadrado de 100x100.
-    // const pixelBlockSize = 100;
-
-    // // Calcula las dimensiones base de la grilla de píxeles (ej: 5x5)
-    // const xs = pixeles.map((p: any) => p.coordenada_x);
-    // const ys = pixeles.map((p: any) => p.coordenada_y);
-    // const minX = Math.min(...xs);
-    // const minY = Math.min(...ys);
-    // const maxX = Math.max(...xs);
-    // const maxY = Math.max(...ys);
-
-    // const baseWidth = maxX - minX + 1;
-    // const baseHeight = maxY - minY + 1;
-
-    // // Calcula las dimensiones finales del canvas multiplicando por el tamaño del bloque
-    // const canvasWidth = baseWidth * pixelBlockSize;
-    // const canvasHeight = baseHeight * pixelBlockSize;
-
-    // Logger.trace(
-    //   `Dimensiones base de la grilla - width: ${baseWidth} - height: ${baseHeight}`
-    // );
-    // Logger.trace(
-    //   `Dimensiones canvas final - width: ${canvasWidth} - height: ${canvasHeight}`
-    // );
-
-    // // Crea el canvas con las nuevas dimensiones
-    // const canvas = createCanvas(canvasWidth, canvasHeight);
-    // const ctx = canvas.getContext("2d");
-
-    // // Itera sobre cada pixel para dibujarlo como un bloque grande
-    // pixeles.forEach((pixel: any) => {
-    //   // Calcula la posición relativa del bloque en la grilla (ej: 0,0, 1,0, etc.)
-    //   const x = pixel.coordenada_x - minX;
-    //   const y = pixel.coordenada_y - minY;
-
-    //   // Valida el formato del color
-    //   if (!/^#[0-9A-F]{6}$/i.test(pixel.color)) {
-    //     Logger.warn(
-    //       `Color inválido en pixel, se omite - ${JSON.stringify(pixel)}`
-    //     );
-    //     return;
-    //   }
-
-    //   ctx.fillStyle = pixel.color;
-
-    //   // Dibuja un rectángulo grande (100x100) en la posición escalada correspondiente
-    //   ctx.fillRect(
-    //     x * pixelBlockSize,
-    //     y * pixelBlockSize,
-    //     pixelBlockSize,
-    //     pixelBlockSize
-    //   );
-    // });
-
-    // Logger.trace(`Canvas pintado - grupoId: ${grupoId}`);
-
-    // const hash = crypto
-    //   .createHash("sha1")
-    //   .update(DateTime.local().toISO() + grupoId)
-    //   .digest("hex");
-    // const fileName = `${grupoId}_${hash}.png`;
-    // Logger.trace(
-    //   `Hash para imagen generado - hash: ${hash} - fileName: ${fileName}`
-    // );
-
-    // const individualesDir = path.join(
-    //   __dirname,
-    //   "./../../../../../../",
-    //   "public",
-    //   "individuales"
-    // );
-
-    // if (!fs.existsSync(individualesDir)) {
-    //   Logger.trace(
-    //     `Directorio de imágenes no existe, creando - individualesDir: ${individualesDir}`
-    //   );
-    //   fs.mkdirSync(individualesDir, { recursive: true });
-    //   Logger.trace(
-    //     `Directorio de imágenes creado - individualesDir: ${individualesDir}`
-    //   );
-    // }
-
-    // const [justName] = fileName.split(".");
-    // const imagePath = path.join(individualesDir, fileName);
-    // const buffer = canvas.toBuffer("image/png");
-    // fs.writeFileSync(imagePath, buffer);
-    // Logger.info(`Imagen guardada en disco - imagePath: ${imagePath}`);
-
-    // await trx
-    //   .from("grupos_pixeles")
-    //   .where("id_grupo_pixeles", grupoId)
-    //   .update({ img: `${Env.get("URL_BACK")}/canvas/img/${justName}` });
-
-    /* -------------------- 10 - Preparar y llamar a Pagopar -------------------- */
+    /* -------------------- 7 - Preparar y llamar a Pagopar -------------------- */
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     if (!privateToken) {
       Logger.error(`PAGOPAR_TOKEN_PRIVADO no definido en Env`);
@@ -517,7 +337,7 @@ export const store = async ({
       throw new Error("Error al generar pedido en Pagopar");
     }
 
-    /* ----------------- 11 - Finalizar transacción y notificar ----------------- */
+    /* ----------------- 8 - Finalizar transacción y notificar ----------------- */
     await trx.commit();
     Logger.info(`Transacción confirmada (commit) - pedidoId: ${id_pedido}`);
     Ws.io.emit("nuevo_registro");
