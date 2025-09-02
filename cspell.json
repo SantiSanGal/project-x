@@ -16,7 +16,10 @@
     "luxon",
     "reportador",
     "contrasenhas",
-    "direccion"
+    "direccion",
+    "Cotizacion",
+    "levantás",
+    "parsear"
   ],
   "ignoreWords": [],
   "import": []
