@@ -10,7 +10,7 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 
-const montoTotal = "100";
+const montoTotal = "100000";
 
 export const store = async ({
   request,
@@ -34,11 +34,11 @@ export const store = async ({
 
   try {
     // 1. Leer y validar payload básico
-    const { grupo_pixeles, pixeles, refer_code } = request.all();
+    const { grupo_pixeles, pixeles } = request.all();
     Logger.trace(
       `Payload recibido - grupo_pixeles: ${JSON.stringify(
         grupo_pixeles
-      )} - pixeles: ${JSON.stringify(pixeles)} - refer_code: ${refer_code}`
+      )} - pixeles: ${JSON.stringify(pixeles)}`
     );
 
     if (!grupo_pixeles) {
@@ -73,46 +73,46 @@ export const store = async ({
     Logger.info(`Usuario autenticado - userId: ${user.id}`);
 
     /* ------------------------- 3 - Parse de refer_code ------------------------ */
-    let referCode: string | null = null;
-    if (refer_code) {
-      try {
-        const parts = refer_code.split("-");
-        if (parts.length < 2) {
-          Logger.warn(
-            `Formato de refer_code inesperado - refer_code: ${refer_code}`
-          );
-        } else {
-          referCode = parts[1];
-          Logger.trace(`refer_code parseado - referCode: ${referCode}`);
-        }
-      } catch (err: any) {
-        Logger.error(
-          `Error al parsear refer_code - refer_code: ${refer_code} - error: ${err.message}`
-        );
-      }
-    } else {
-      Logger.trace(`No se proporcionó refer_code`);
-    }
+    // let referCode: string | null = null;
+    // if (refer_code) {
+    //   try {
+    //     const parts = refer_code.split("-");
+    //     if (parts.length < 2) {
+    //       Logger.warn(
+    //         `Formato de refer_code inesperado - refer_code: ${refer_code}`
+    //       );
+    //     } else {
+    //       referCode = parts[1];
+    //       Logger.trace(`refer_code parseado - referCode: ${referCode}`);
+    //     }
+    //   } catch (err: any) {
+    //     Logger.error(
+    //       `Error al parsear refer_code - refer_code: ${refer_code} - error: ${err.message}`
+    //     );
+    //   }
+    // } else {
+    //   Logger.trace(`No se proporcionó refer_code`);
+    // }
 
     /* ------------------- 4 - Detectar si es Auto-referencia ------------------ */
-    let isSelfReferral = false;
-    if (referCode) {
-      Logger.trace(
-        `Buscando pedido referido existente - referCode: ${referCode}`
-      );
-      const pedidoReferido = await trx
-        .from("pedidos")
-        .select("id_usuario")
-        .where("id_grupo_pixeles", referCode)
-        .first();
+    // let isSelfReferral = false;
+    // if (referCode) {
+    //   Logger.trace(
+    //     `Buscando pedido referido existente - referCode: ${referCode}`
+    //   );
+    //   const pedidoReferido = await trx
+    //     .from("pedidos")
+    //     .select("id_usuario")
+    //     .where("id_grupo_pixeles", referCode)
+    //     .first();
 
-      if (pedidoReferido?.id_usuario === user.id) {
-        isSelfReferral = true;
-        Logger.trace(
-          `Autorreferencia detectada, se ignorará referCode - userId: ${user.id} - referCode: ${referCode}`
-        );
-      }
-    }
+    //   if (pedidoReferido?.id_usuario === user.id) {
+    //     isSelfReferral = true;
+    //     Logger.trace(
+    //       `Autorreferencia detectada, se ignorará referCode - userId: ${user.id} - referCode: ${referCode}`
+    //     );
+    //   }
+    // }
 
     /* ---------------------- 5 - Preparar nueva expiración --------------------- */
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
@@ -126,6 +126,7 @@ export const store = async ({
         grupo_pixeles
       )}`
     );
+
     const grupoExistente = await trx
       .from("grupos_pixeles")
       .where("coordenada_x_inicio", grupo_pixeles.coordenada_x_inicio)
@@ -194,24 +195,28 @@ export const store = async ({
         `Registros de puntos anteriores eliminados - grupoId: ${grupoId}`
       );
 
-      if (!referCode || isSelfReferral) {
-        await trx.table("puntos").insert({
-          id_grupo_pixeles: grupoId,
-          id_grupo_pixeles_referido: null,
-        });
-      } else {
-        await trx.table("puntos").insert([
-          { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
-          {
-            id_grupo_pixeles: grupoId,
-            id_grupo_pixeles_referido: referCode!,
-          },
-        ]);
-      }
-      Logger.info(
-        `Puntos insertados (grupo expirado) - grupoId: ${grupoId} - referCode: ${
-          referCode ?? "null"
-        }`
+      // if (!referCode || isSelfReferral) {
+      //   await trx.table("puntos").insert({
+      //     id_grupo_pixeles: grupoId,
+      //     id_grupo_pixeles_referido: null,
+      //   });
+      // } else {
+      //   await trx.table("puntos").insert([
+      //     { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
+      //     {
+      //       id_grupo_pixeles: grupoId,
+      //       id_grupo_pixeles_referido: referCode!,
+      //     },
+      //   ]);
+      // }
+      // Logger.info(
+      //   `Puntos insertados (grupo expirado) - grupoId: ${grupoId} - referCode: ${
+      //     referCode ?? "null"
+      //   }`
+      // );
+
+      Logger.trace(
+        `Grupo expirado actualizado correctamente - grupoId: ${grupoId}`
       );
 
       params.notification = {
@@ -251,25 +256,25 @@ export const store = async ({
         `Píxeles individuales insertados - grupoId: ${grupoId} - count: ${pixelesData.length}`
       );
 
-      if (!referCode || isSelfReferral) {
-        await trx.table("puntos").insert({
-          id_grupo_pixeles: grupoId,
-          id_grupo_pixeles_referido: null,
-        });
-      } else {
-        await trx.table("puntos").insert([
-          { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
-          {
-            id_grupo_pixeles: grupoId,
-            id_grupo_pixeles_referido: referCode,
-          },
-        ]);
-      }
-      Logger.info(
-        `Puntos insertados (nuevo grupo) - grupoId: ${grupoId} - referCode: ${
-          referCode ?? "null"
-        } - isSelfReferral: ${isSelfReferral}`
-      );
+      // if (!referCode || isSelfReferral) {
+      //   await trx.table("puntos").insert({
+      //     id_grupo_pixeles: grupoId,
+      //     id_grupo_pixeles_referido: null,
+      //   });
+      // } else {
+      //   await trx.table("puntos").insert([
+      //     { id_grupo_pixeles: grupoId, id_grupo_pixeles_referido: null },
+      //     {
+      //       id_grupo_pixeles: grupoId,
+      //       id_grupo_pixeles_referido: referCode,
+      //     },
+      //   ]);
+      // }
+      // Logger.info(
+      //   `Puntos insertados (nuevo grupo) - grupoId: ${grupoId} - referCode: ${
+      //     referCode ?? "null"
+      //   } - isSelfReferral: ${isSelfReferral}`
+      // );
 
       params.notification = {
         state: true,
@@ -299,99 +304,99 @@ export const store = async ({
     Logger.info(`Pedido insertado con ID - id_pedido: ${id_pedido}`);
 
     /* --------------------------- 9 - Generar imagen --------------------------- */
-    Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
-    // Define el tamaño de cada bloque de color. Cada pixel original será un cuadrado de 100x100.
-    const pixelBlockSize = 100;
+    // Logger.info(`Generando imagen de pixeles - grupoId: ${grupoId}`);
+    // // Define el tamaño de cada bloque de color. Cada pixel original será un cuadrado de 100x100.
+    // const pixelBlockSize = 100;
 
-    // Calcula las dimensiones base de la grilla de píxeles (ej: 5x5)
-    const xs = pixeles.map((p: any) => p.coordenada_x);
-    const ys = pixeles.map((p: any) => p.coordenada_y);
-    const minX = Math.min(...xs);
-    const minY = Math.min(...ys);
-    const maxX = Math.max(...xs);
-    const maxY = Math.max(...ys);
+    // // Calcula las dimensiones base de la grilla de píxeles (ej: 5x5)
+    // const xs = pixeles.map((p: any) => p.coordenada_x);
+    // const ys = pixeles.map((p: any) => p.coordenada_y);
+    // const minX = Math.min(...xs);
+    // const minY = Math.min(...ys);
+    // const maxX = Math.max(...xs);
+    // const maxY = Math.max(...ys);
 
-    const baseWidth = maxX - minX + 1;
-    const baseHeight = maxY - minY + 1;
+    // const baseWidth = maxX - minX + 1;
+    // const baseHeight = maxY - minY + 1;
 
-    // Calcula las dimensiones finales del canvas multiplicando por el tamaño del bloque
-    const canvasWidth = baseWidth * pixelBlockSize;
-    const canvasHeight = baseHeight * pixelBlockSize;
+    // // Calcula las dimensiones finales del canvas multiplicando por el tamaño del bloque
+    // const canvasWidth = baseWidth * pixelBlockSize;
+    // const canvasHeight = baseHeight * pixelBlockSize;
 
-    Logger.trace(
-      `Dimensiones base de la grilla - width: ${baseWidth} - height: ${baseHeight}`
-    );
-    Logger.trace(
-      `Dimensiones canvas final - width: ${canvasWidth} - height: ${canvasHeight}`
-    );
+    // Logger.trace(
+    //   `Dimensiones base de la grilla - width: ${baseWidth} - height: ${baseHeight}`
+    // );
+    // Logger.trace(
+    //   `Dimensiones canvas final - width: ${canvasWidth} - height: ${canvasHeight}`
+    // );
 
-    // Crea el canvas con las nuevas dimensiones
-    const canvas = createCanvas(canvasWidth, canvasHeight);
-    const ctx = canvas.getContext("2d");
+    // // Crea el canvas con las nuevas dimensiones
+    // const canvas = createCanvas(canvasWidth, canvasHeight);
+    // const ctx = canvas.getContext("2d");
 
-    // Itera sobre cada pixel para dibujarlo como un bloque grande
-    pixeles.forEach((pixel: any) => {
-      // Calcula la posición relativa del bloque en la grilla (ej: 0,0, 1,0, etc.)
-      const x = pixel.coordenada_x - minX;
-      const y = pixel.coordenada_y - minY;
+    // // Itera sobre cada pixel para dibujarlo como un bloque grande
+    // pixeles.forEach((pixel: any) => {
+    //   // Calcula la posición relativa del bloque en la grilla (ej: 0,0, 1,0, etc.)
+    //   const x = pixel.coordenada_x - minX;
+    //   const y = pixel.coordenada_y - minY;
 
-      // Valida el formato del color
-      if (!/^#[0-9A-F]{6}$/i.test(pixel.color)) {
-        Logger.warn(
-          `Color inválido en pixel, se omite - ${JSON.stringify(pixel)}`
-        );
-        return;
-      }
+    //   // Valida el formato del color
+    //   if (!/^#[0-9A-F]{6}$/i.test(pixel.color)) {
+    //     Logger.warn(
+    //       `Color inválido en pixel, se omite - ${JSON.stringify(pixel)}`
+    //     );
+    //     return;
+    //   }
 
-      ctx.fillStyle = pixel.color;
+    //   ctx.fillStyle = pixel.color;
 
-      // Dibuja un rectángulo grande (100x100) en la posición escalada correspondiente
-      ctx.fillRect(
-        x * pixelBlockSize,
-        y * pixelBlockSize,
-        pixelBlockSize,
-        pixelBlockSize
-      );
-    });
+    //   // Dibuja un rectángulo grande (100x100) en la posición escalada correspondiente
+    //   ctx.fillRect(
+    //     x * pixelBlockSize,
+    //     y * pixelBlockSize,
+    //     pixelBlockSize,
+    //     pixelBlockSize
+    //   );
+    // });
 
-    Logger.trace(`Canvas pintado - grupoId: ${grupoId}`);
+    // Logger.trace(`Canvas pintado - grupoId: ${grupoId}`);
 
-    const hash = crypto
-      .createHash("sha1")
-      .update(DateTime.local().toISO() + grupoId)
-      .digest("hex");
-    const fileName = `${grupoId}_${hash}.png`;
-    Logger.trace(
-      `Hash para imagen generado - hash: ${hash} - fileName: ${fileName}`
-    );
+    // const hash = crypto
+    //   .createHash("sha1")
+    //   .update(DateTime.local().toISO() + grupoId)
+    //   .digest("hex");
+    // const fileName = `${grupoId}_${hash}.png`;
+    // Logger.trace(
+    //   `Hash para imagen generado - hash: ${hash} - fileName: ${fileName}`
+    // );
 
-    const individualesDir = path.join(
-      __dirname,
-      "./../../../../../../",
-      "public",
-      "individuales"
-    );
+    // const individualesDir = path.join(
+    //   __dirname,
+    //   "./../../../../../../",
+    //   "public",
+    //   "individuales"
+    // );
 
-    if (!fs.existsSync(individualesDir)) {
-      Logger.trace(
-        `Directorio de imágenes no existe, creando - individualesDir: ${individualesDir}`
-      );
-      fs.mkdirSync(individualesDir, { recursive: true });
-      Logger.trace(
-        `Directorio de imágenes creado - individualesDir: ${individualesDir}`
-      );
-    }
+    // if (!fs.existsSync(individualesDir)) {
+    //   Logger.trace(
+    //     `Directorio de imágenes no existe, creando - individualesDir: ${individualesDir}`
+    //   );
+    //   fs.mkdirSync(individualesDir, { recursive: true });
+    //   Logger.trace(
+    //     `Directorio de imágenes creado - individualesDir: ${individualesDir}`
+    //   );
+    // }
 
-    const [justName] = fileName.split(".");
-    const imagePath = path.join(individualesDir, fileName);
-    const buffer = canvas.toBuffer("image/png");
-    fs.writeFileSync(imagePath, buffer);
-    Logger.info(`Imagen guardada en disco - imagePath: ${imagePath}`);
+    // const [justName] = fileName.split(".");
+    // const imagePath = path.join(individualesDir, fileName);
+    // const buffer = canvas.toBuffer("image/png");
+    // fs.writeFileSync(imagePath, buffer);
+    // Logger.info(`Imagen guardada en disco - imagePath: ${imagePath}`);
 
-    await trx
-      .from("grupos_pixeles")
-      .where("id_grupo_pixeles", grupoId)
-      .update({ img: `${Env.get("URL_BACK")}/canvas/img/${justName}` });
+    // await trx
+    //   .from("grupos_pixeles")
+    //   .where("id_grupo_pixeles", grupoId)
+    //   .update({ img: `${Env.get("URL_BACK")}/canvas/img/${justName}` });
 
     /* -------------------- 10 - Preparar y llamar a Pagopar -------------------- */
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
@@ -406,48 +411,65 @@ export const store = async ({
       throw new Error("Missing PAGOPAR_TOKEN_PUBLICO");
     }
 
+    const fechaMaximaPagoStr = DateTime.local()
+      .plus({ minutes: 7 })
+      .toFormat("yyyy-LL-dd HH:mm:ss");
+
+    // Recalcular el token con el monto en PYG exacto que enviarás
     const tokenForPagopar = crypto
       .createHash("sha1")
-      .update(privateToken + id_pedido.toString() + montoTotal)
+      .update(privateToken + id_pedido.toString() + String(montoTotal))
       .digest("hex");
 
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
-        ruc: user.document || "5688386-2",
-        email: user.email || "santiago.patiasoc@gmail.com",
-        nombre: user.name || "santiago",
-        telefono: "+595985507615",
-        documento: user.document || "5688386",
-        razon_social: "",
+        ruc: user.document || "5688386-2", // si no tiene, enviar ""
+        email: user.email, // obligatorio
+        ciudad: "1", // si NO usás courier, enviar "1"
+        nombre: user.name || "Santiago",
+        telefono: "+595985507615", // en formato internacional
+        direccion: "", // si no hay, enviar ""
+        documento: user.document || "5688386", // obligatorio
+        coordenadas: "", // si no hay, enviar ""
+        razon_social: user.name || "", // si no hay, enviar ""
+        tipo_documento: "CI", // según doc, siempre "CI"
+        direccion_referencia: "", // si no hay, enviar ""
       },
       public_key: publicToken,
-      monto_total: montoTotal,
-      moneda: "USD",
-      comision_transladada_comprador: false,
+      monto_total: montoTotal, // ENTERO en PYG
+      tipo_pedido: "VENTA-COMERCIO", // requerido por doc
       compras_items: [
         {
+          ciudad: "1", // si NO usás courier, "1"
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
-          url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
+          categoria: "909", // si NO usás courier, "909"
+          public_key: publicToken, // mismo public_key si no hay split
+          // url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
+          url_imagen: "",
           descripcion: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           id_producto: "1",
-          precio_total: montoTotal,
+          precio_total: montoTotal, // total del ítem (no unitario)
+          vendedor_telefono: "", // si no hay, enviar ""
+          vendedor_direccion: "",
+          vendedor_direccion_referencia: "",
+          vendedor_direccion_coordenadas: "",
         },
       ],
-      id_pedido_comercio: id_pedido.toString(),
+      fecha_maxima_pago: fechaMaximaPagoStr, // "YYYY-MM-DD HH:mm:ss"
+      id_pedido_comercio: id_pedido.toString(), // único por ambiente
       descripcion_resumen: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
-      forma_pago: 26,
+      forma_pago: 26, // mantenés tu forma de pago elegida
     };
 
+    // LOG opcional
     Logger.trace(
-      `Payload para Pagopar preparado - ${JSON.stringify(pagoparPayload)}`
+      `Payload para Pagopar (PYG) - ${JSON.stringify(pagoparPayload)}`
     );
 
-    Logger.info(`Enviando petición a Pagopar`);
-
     const pagoparResponse = await axios.post(
-      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion-divisa",
+      "https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion",
       pagoparPayload,
       { headers: { "Content-Type": "application/json" } }
     );

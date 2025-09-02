@@ -15,7 +15,8 @@
     "expiracion",
     "luxon",
     "reportador",
-    "contrasenhas"
+    "contrasenhas",
+    "direccion"
   ],
   "ignoreWords": [],
   "import": []
