@@ -78,7 +78,7 @@ export default class CotizacionDNITCadaMinuto extends BaseTask {
     if ($table.length === 0)
       throw new Error('DNIT: no se encontró "table.table"');
 
-    const { compraIdx, ventaIdx } = this.findDolarColumnIndexes($, $table);
+    const { ventaIdx } = this.findDolarColumnIndexes($, $table);
 
     // Recolectar filas del cuerpo con su día (primer <td>)
     const rows: { dayInt: number; $tds: Cheerio<AnyNode> }[] = [];

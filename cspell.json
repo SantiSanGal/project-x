@@ -19,7 +19,8 @@
     "direccion",
     "Cotizacion",
     "levantás",
-    "parsear"
+    "parsear",
+    "domhandler"
   ],
   "ignoreWords": [],
   "import": []
