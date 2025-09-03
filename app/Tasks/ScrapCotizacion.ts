@@ -1,13 +1,14 @@
 import { BaseTask } from "adonis5-scheduler/build/src/Scheduler/Task";
+import { load, CheerioAPI, Cheerio } from "cheerio";
 import Database from "@ioc:Adonis/Lucid/Database";
-import axios from "axios";
-import { load, CheerioAPI, Cheerio, Element } from "cheerio"; // <- TIPOS CORRECTOS
+import type { AnyNode } from "domhandler";
 import { DateTime } from "luxon";
+import axios from "axios";
 
 export default class CotizacionDNITCadaMinuto extends BaseTask {
   public static get schedule() {
     // Cada minuto (en el segundo 0)
-    return "0 * * * * *";
+    return "0 0 0 * * *";
   }
   public static get useLock() {
     return true;
@@ -33,7 +34,7 @@ export default class CotizacionDNITCadaMinuto extends BaseTask {
   }
 
   // Detecta dónde están las columnas de DÓLAR en el thead (compra/venta)
-  private findDolarColumnIndexes($: CheerioAPI, $table: Cheerio<Element>) {
+  private findDolarColumnIndexes($: CheerioAPI, $table: Cheerio<AnyNode>) {
     const headerRows = $table.find("thead tr");
     let startIdx: number | null = null;
 
@@ -80,7 +81,7 @@ export default class CotizacionDNITCadaMinuto extends BaseTask {
     const { compraIdx, ventaIdx } = this.findDolarColumnIndexes($, $table);
 
     // Recolectar filas del cuerpo con su día (primer <td>)
-    const rows: { dayInt: number; $tds: Cheerio<Element> }[] = [];
+    const rows: { dayInt: number; $tds: Cheerio<AnyNode> }[] = [];
     $table.find("tbody > tr").each((_, tr) => {
       const $tds = $(tr).find("td");
       const dayTxt = $tds.eq(0).text().trim();
