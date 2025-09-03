@@ -7,7 +7,8 @@ import { DateTime } from "luxon";
 import crypto from "crypto";
 import axios from "axios";
 
-const montoTotal = "100000";
+// USD objetivo
+const MONTO_USD = 100;
 
 export const store = async ({
   request,
@@ -43,7 +44,6 @@ export const store = async ({
       await trx.rollback();
       return response.badRequest({ message: "Missing grupo_pixeles" });
     }
-
     if (!Array.isArray(pixeles) || pixeles.length === 0) {
       Logger.warn(
         `Pixeles inválidos o faltantes - pixeles: ${JSON.stringify(pixeles)}`
@@ -52,7 +52,7 @@ export const store = async ({
       return response.badRequest({ message: "Pixeles inválidos" });
     }
 
-    /* ------------------------- 2 - Usuario Autenticado ------------------------ */
+    // 2. Usuario
     const { user } = auth;
 
     if (!user) {
@@ -61,19 +61,8 @@ export const store = async ({
       return response.status(401).json({ message: "User not authenticated" });
     }
 
-    if (!user.id) {
-      Logger.warn(`Usuario autenticado sin ID`);
-      await trx.rollback();
-      return response.status(401).json({ message: "User ID is not available" });
-    }
-
-    Logger.info(`Usuario autenticado - userId: ${user.id}`);
-
-    /* ---------------------- 3 - Preparar nueva expiración --------------------- */
+    // 3. Expiración
     const newExpiration = DateTime.local().plus({ minutes: 7 }).toISO();
-    Logger.trace(
-      `Fecha de expiración calculada - newExpiration: ${newExpiration}`
-    );
 
     /* ----------------------- 4 - Buscar grupo existente ----------------------- */
     Logger.trace(
@@ -92,12 +81,10 @@ export const store = async ({
       .first();
 
     let grupoId: number;
-
     if (grupoExistente) {
       grupoId = grupoExistente.id_grupo_pixeles;
       Logger.info(`Grupo existente encontrado - grupoId: ${grupoId}`);
 
-      /* ----------------------- 4.1 - Verificar expiración ----------------------- */
       const fechaExpiracionGrupo = DateTime.fromJSDate(
         new Date(grupoExistente.fecha_expiracion)
       );
@@ -130,15 +117,15 @@ export const store = async ({
       );
 
       await Promise.all(
-        pixeles.map((pixel) =>
+        pixeles.map((p) =>
           trx
             .from("pixeles_individuales")
             .where({
               id_grupo_pixeles: grupoId,
-              coordenada_x: pixel.coordenada_x,
-              coordenada_y: pixel.coordenada_y,
+              coordenada_x: p.coordenada_x,
+              coordenada_y: p.coordenada_y,
             })
-            .update({ color: pixel.color })
+            .update({ color: p.color })
         )
       );
       Logger.trace(
@@ -146,9 +133,6 @@ export const store = async ({
       );
 
       await trx.from("puntos").where("id_grupo_pixeles", grupoId).del();
-      Logger.trace(
-        `Registros de puntos anteriores eliminados - grupoId: ${grupoId}`
-      );
 
       Logger.trace(
         `Grupo expirado actualizado correctamente - grupoId: ${grupoId}`
@@ -198,11 +182,38 @@ export const store = async ({
       };
     }
 
-    /* --------------------------- 6 - Insertar pedido -------------------------- */
+    // 5. *** COTIZACIÓN más reciente y monto en PYG equivalente a 100 USD ***
+    const ultimaCot = await trx
+      .from("cotizaciones")
+      .select("monto_venta", "fecha")
+      .orderBy("fecha", "desc")
+      .first();
+
+    if (!ultimaCot?.monto_venta) {
+      await trx.rollback();
+      return response.status(503).json({
+        message: "No hay cotización disponible para calcular el monto en PYG",
+      });
+    }
+
+    const ventaGs = Number(ultimaCot.monto_venta);
+    if (!Number.isFinite(ventaGs)) {
+      await trx.rollback();
+      return response.status(503).json({
+        message: "Cotización inválida en base de datos",
+      });
+    }
+
+    const montoTotalPYG = Math.round(ventaGs * MONTO_USD); // equivalente a 100 USD
+    Logger.info(
+      `Cotización usada: ${ventaGs} Gs/USD (fecha=${ultimaCot.fecha}) -> monto_total=${montoTotalPYG} Gs`
+    );
+
+    // 6. Insertar pedido (guardar el monto en PYG que enviarás a Pagopar)
     const pedido_insert_params = {
       id_grupo_pixeles: grupoId,
       id_usuario: user.id,
-      monto: montoTotal,
+      monto: montoTotalPYG, // <--- PYG
       pagado: false,
       created_at: DateTime.local().toISO(),
       updated_at: DateTime.local().toISO(),
@@ -216,9 +227,8 @@ export const store = async ({
       .table("pedidos")
       .insert(pedido_insert_params)
       .returning("id_pedido");
-    Logger.info(`Pedido insertado con ID - id_pedido: ${id_pedido}`);
 
-    /* -------------------- 7 - Preparar y llamar a Pagopar -------------------- */
+    // 7. Preparar y llamar a Pagopar con el monto PYG calculado
     const privateToken = Env.get("PAGOPAR_TOKEN_PRIVADO");
     if (!privateToken) {
       Logger.error(`PAGOPAR_TOKEN_PRIVADO no definido en Env`);
@@ -226,61 +236,61 @@ export const store = async ({
     }
 
     const publicToken = Env.get("PAGOPAR_TOKEN_PUBLICO");
-    if (!publicToken) {
-      Logger.error(`PAGOPAR_TOKEN_PUBLICO no definido en Env`);
-      throw new Error("Missing PAGOPAR_TOKEN_PUBLICO");
+    if (!privateToken || !publicToken) {
+      await trx.rollback();
+      return response
+        .status(500)
+        .json({ message: "Tokens de Pagopar faltantes" });
     }
 
     const fechaMaximaPagoStr = DateTime.local()
       .plus({ minutes: 7 })
       .toFormat("yyyy-LL-dd HH:mm:ss");
 
-    // Recalcular el token con el monto en PYG exacto que enviarás
     const tokenForPagopar = crypto
       .createHash("sha1")
-      .update(privateToken + id_pedido.toString() + String(montoTotal))
+      .update(privateToken + id_pedido.toString() + String(montoTotalPYG))
       .digest("hex");
 
     const pagoparPayload = {
       token: tokenForPagopar,
       comprador: {
-        ruc: user.document || "5688386-2", // si no tiene, enviar ""
-        email: user.email, // obligatorio
-        ciudad: "1", // si NO usás courier, enviar "1"
+        ruc: user.document || "5688386-2",
+        email: user.email,
+        ciudad: "1",
         nombre: user.name || "Santiago",
-        telefono: "+595985507615", // en formato internacional
-        direccion: "", // si no hay, enviar ""
-        documento: user.document || "5688386", // obligatorio
-        coordenadas: "", // si no hay, enviar ""
-        razon_social: user.name || "", // si no hay, enviar ""
-        tipo_documento: "CI", // según doc, siempre "CI"
-        direccion_referencia: "", // si no hay, enviar ""
+        telefono: "+595985507615",
+        direccion: "",
+        documento: user.document || "5688386",
+        coordenadas: "",
+        razon_social: user.name || "",
+        tipo_documento: "CI",
+        direccion_referencia: "",
       },
       public_key: publicToken,
-      monto_total: montoTotal, // ENTERO en PYG
-      tipo_pedido: "VENTA-COMERCIO", // requerido por doc
+      monto_total: montoTotalPYG, // <--- PYG equivalente a 100 USD
+      tipo_pedido: "VENTA-COMERCIO",
       compras_items: [
         {
-          ciudad: "1", // si NO usás courier, "1"
+          ciudad: "1",
           nombre: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           cantidad: 1,
-          categoria: "909", // si NO usás courier, "909"
-          public_key: publicToken, // mismo public_key si no hay split
-          // url_imagen: `${Env.get("URL_BACK")}/canvas/img/${justName}`,
+          categoria: "909",
+          public_key: publicToken,
           url_imagen: "",
           descripcion: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
           id_producto: "1",
-          precio_total: montoTotal, // total del ítem (no unitario)
-          vendedor_telefono: "", // si no hay, enviar ""
+          precio_total: montoTotalPYG, // <--- total del ítem en PYG
+          vendedor_telefono: "",
           vendedor_direccion: "",
           vendedor_direccion_referencia: "",
           vendedor_direccion_coordenadas: "",
         },
       ],
-      fecha_maxima_pago: fechaMaximaPagoStr, // "YYYY-MM-DD HH:mm:ss"
-      id_pedido_comercio: id_pedido.toString(), // único por ambiente
+      fecha_maxima_pago: fechaMaximaPagoStr,
+      id_pedido_comercio: id_pedido.toString(),
       descripcion_resumen: `Coordenadas (${grupo_pixeles.coordenada_x_inicio}, ${grupo_pixeles.coordenada_y_inicio})`,
-      forma_pago: 26, // mantenés tu forma de pago elegida
+      forma_pago: 26,
     };
 
     // LOG opcional
@@ -313,11 +323,6 @@ export const store = async ({
         `Transacción Pagopar exitosa - id_pedido: ${id_pedido} - dataToken: ${dataToken} - pagopar_pedido_transaccion: ${pagopar_pedido_transaccion}`
       );
 
-      params.data = {
-        dataToken,
-        code_for_refer: `TP-${grupoId}`,
-      };
-
       await trx.from("pedidos").where("id_pedido", id_pedido).update({
         data_token: dataToken,
         pagopar_pedido_transaccion,
@@ -348,10 +353,16 @@ export const store = async ({
       type: "success",
       message: "Pedido Registrado con éxito",
     };
+    params.data = {
+      dataToken: pagoparResponse.data.resultado[0].data,
+      code_for_refer: `TP-${grupoId}`,
+    };
     return response.json(params);
-  } catch (error) {
+  } catch (error: any) {
+    console.log("error", error);
+
     Logger.error(
-      `Error inesperado en handler STORE - message: ${error.message} - stack: ${error.stack}`
+      `Error inesperado en handler STORE - message: ${error.message}`
     );
     await trx.rollback();
     return response.status(500).json(params);
