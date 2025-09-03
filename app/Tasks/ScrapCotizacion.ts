@@ -8,7 +8,7 @@ import axios from "axios";
 export default class CotizacionDNITCadaMinuto extends BaseTask {
   public static get schedule() {
     // Cada minuto (en el segundo 0)
-    return "0 0 0 * * *";
+    return "0 * * * * *";
   }
   public static get useLock() {
     return true;
