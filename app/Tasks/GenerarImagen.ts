@@ -8,7 +8,7 @@ import fs from "fs";
 export default class GenerarImagen extends BaseTask {
   public static get schedule() {
     // return '0 * * * * *' // para cada 1min
-    return "0 0 0 * * *"; // para cada 24hs
+    return "0 0 */6 * * *"; // Cada 6 horas
   }
 
   public static get useLock() {
